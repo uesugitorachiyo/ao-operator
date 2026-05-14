@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.pyc
+
+# User-local provider routing (template lives in .env.example)
+.env
+
+# Per-run smoke-test scratch artifacts. Real factory runs write the same
+# paths under non-`factoryv3-smoke-` slugs and remain trackable.
+/docs/specs/factoryv3-smoke-*-spec.md
+/docs/plans/factoryv3-smoke-*-plan.md
+/docs/evaluations/factoryv3-smoke-*-evaluation.md
+/docs/status/factoryv3-smoke-*/
+/docs/evidence/factoryv3-smoke-*/
+/docs/compliance/factoryv3-smoke-*/
+
+# macOS / IDE detritus
+.DS_Store
+.idea/
+.vscode/
+
+# Local agent runtime settings
+.claude/settings.json
+.codex/config.toml
+
+# gsd plugin checkpoint state (HANDOFF.json + scratch). Per dev-recipe SDD 08.
+.planning/
+
+# AO policy CLI scratch (approvals.db default path; per `ao-policy --help`).
+/.ao/
+
+# Private knowledge source lives outside this repo.
+llm-wiki/
+
+# Remote Transfer v2 stress failed-live raw diagnostics. Commit sanitized
+# summaries only; raw AO homes, full events, generated patches, and partial role
+# docs can contain provider transcripts or diff-hygiene failures.
+/docs/remote-transfer-v2/
+/docs/status/remote-transfer-v2-stress/failure-snapshots/ao-home-*/
+/docs/status/remote-transfer-v2-stress/patches/
+/docs/status/remote-transfer-v2-stress/remote-transfer-v2-stress-ao-events.md
+
+# Remote Transfer v2 bounded-live failed-run raw diagnostics. Accepted live
+# evidence remains trackable under the slug; only raw failure AO homes are
+# ignored here. Commit sanitized summaries only.
+/docs/status/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*
+/docs/status/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*/

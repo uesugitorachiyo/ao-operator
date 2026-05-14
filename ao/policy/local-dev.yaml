@@ -1,0 +1,27 @@
+id: ao-operator-local-dev
+default_decision: allow
+default_reason: "default-allow for local owner-trust AO Operator smoke"
+rules:
+  - match:
+      action.type: agent.run.codex
+      source.trust: local-user
+    decision: allow
+    reason: "local Codex CLI launch is allowed for AO Operator smoke"
+  - match:
+      action.type: agent.run.claude
+      source.trust: local-user
+    decision: allow
+    reason: "local Claude Code CLI launch is allowed for AO Operator smoke"
+  - match:
+      action.type: secrets.read
+    decision: deny
+    reason: "secret access is forbidden"
+  - match:
+      action.type: git.force_push
+    decision: deny
+    reason: "force-push is forbidden"
+  - match:
+      action.type: shell.run
+      action.command: "rm -rf /"
+    decision: deny
+    reason: "destructive shell command"

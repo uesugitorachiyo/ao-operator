@@ -1,0 +1,3 @@
+role = "qa-checklist"
+provider = "codex"
+template = "Use the generated AO Operator role prompt as authoritative context. Preserve scoped reads, scoped writes, evidence, concerns, and blocker reporting."

@@ -1,0 +1,108 @@
+{
+  "profile": "evidence",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "Evidence Factory profile: read-only, six-role linear chain that turns a brief / PR / patch into an evidence pack. No mutator role, no slice fan-out. Final artifact: docs/evidence/<slug>/evidence-report.md (schema ao-operator/evidence-report/v1).",
+  "common_instructions": [
+    "Treat injected artifacts as authoritative scoped context.",
+    "Do not include full transcripts.",
+    "Do not include secret values.",
+    "Return a STATUS block with Result, Artifact, Evidence, Concerns, and Blocker.",
+    "Use BLOCKED when required context, permissions, or write scope is missing.",
+    "Use BLOCKED only for this role's own inability to complete its scoped work; do not set role Result BLOCKED merely because a document describes a BLOCKED_* runtime state.",
+    "Do not write role artifact files; AO Operator reconstructs role artifacts from your STATUS block after AO completes.",
+    "This profile is read-only at the role level. No role may apply patches or write outside the declared writes scope.",
+    "Operator-level validation (AO dispatch, AO event capture, artifact hygiene) runs outside provider turns."
+  ],
+  "roles": [
+    {
+      "id": "intake",
+      "role": "Evidence Intake",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": [],
+      "reads": ["task brief", "input ref (pr / branch / patch)"],
+      "writes": ["run-artifacts/<slug>/roles/intake.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "Classify the input as one of: pr, branch, patch, brief.",
+        "Extract scope: files changed, lines added / removed, areas of change.",
+        "Identify any sensitive fields (PII, secrets, credentials). Flag them in a sensitive-fields list.",
+        "Do not collect risks, tests, or evidence; downstream roles handle that. This role only validates intake readiness and shape."
+      ]
+    },
+    {
+      "id": "risk-scoper",
+      "role": "Risk Scoper",
+      "provider_key": "FACTORY_V3_PLAN_HARDENER_PROVIDER",
+      "deps": ["intake"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md"],
+      "writes": ["run-artifacts/<slug>/roles/risk-scoper.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "Enumerate change risk: blast radius, regression surface, dependency exposure.",
+        "Tag each risk with severity (low / medium / high) and a one-line rationale.",
+        "Cover at least one risk per area-of-change identified by intake."
+      ]
+    },
+    {
+      "id": "test-mapper",
+      "role": "Test Mapper",
+      "provider_key": "FACTORY_V3_PLAN_HARDENER_PROVIDER",
+      "deps": ["risk-scoper"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "run-artifacts/<slug>/roles/risk-scoper.md"],
+      "writes": ["run-artifacts/<slug>/roles/test-mapper.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "Identify which existing tests cover the change (covered list) and which gaps remain (gaps list).",
+        "Assign owners or candidate owners for each gap when context permits.",
+        "Build a test-coverage mapping table: file or symbol -> covering tests."
+      ]
+    },
+    {
+      "id": "evidence-collector",
+      "role": "Evidence Collector",
+      "provider_key": "FACTORY_V3_INTEGRATOR_PROVIDER",
+      "deps": ["test-mapper"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "run-artifacts/<slug>/roles/risk-scoper.md", "run-artifacts/<slug>/roles/test-mapper.md"],
+      "writes": ["run-artifacts/<slug>/roles/evidence-collector.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "Gather concrete evidence: diff stats, coverage delta, prior incidents, related issues / tickets.",
+        "Cite related links (issues, prior incidents) when present in the injected context.",
+        "Do not author the final report; the report-writer role handles synthesis."
+      ]
+    },
+    {
+      "id": "qa-checklist",
+      "role": "Manual QA Checklist",
+      "provider_key": "FACTORY_V3_PLAN_HARDENER_PROVIDER",
+      "deps": ["evidence-collector"],
+      "reads": ["run-artifacts/<slug>/roles/risk-scoper.md", "run-artifacts/<slug>/roles/test-mapper.md", "run-artifacts/<slug>/roles/evidence-collector.md"],
+      "writes": ["run-artifacts/<slug>/roles/qa-checklist.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "Produce a manual-QA checklist a reviewer can execute in under 30 minutes.",
+        "Every risk identified by risk-scoper must have at least one checklist item.",
+        "Every gap identified by test-mapper must have a manual mitigation step."
+      ]
+    },
+    {
+      "id": "report-writer",
+      "role": "Evidence Report Writer",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": ["qa-checklist"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "run-artifacts/<slug>/roles/risk-scoper.md", "run-artifacts/<slug>/roles/test-mapper.md", "run-artifacts/<slug>/roles/evidence-collector.md", "run-artifacts/<slug>/roles/qa-checklist.md"],
+      "writes": ["docs/evidence/<slug>/evidence-report.md"],
+      "deterministic": true,
+      "replay_command": ["python3", "-c", "from pathlib import Path; Path('evidence-profile-deterministic-replay.json').write_text('{\"schema\":\"ao-operator/evidence-profile-deterministic-replay/v1\",\"verdict\":\"PASS\"}\\n', encoding='utf-8')"],
+      "replay_outputs": ["evidence-profile-deterministic-replay.json"],
+      "skills": ["skills/factory-intake/SKILL.md", "skills/closure-verification/SKILL.md"],
+      "instructions": [
+        "Render the final markdown evidence report following schema ao-operator/evidence-report/v1 (see run-artifacts/release-v0.1/mac/profile-design.md section 3d).",
+        "Do not write the deterministic replay proof artifact yourself; AO Operator executes this role's replay_command after AO completes and packs the resulting evidence-profile-deterministic-replay.json.",
+        "Include: input kind / ref, scope (files / lines / areas), risks with severity, test_coverage covered + gaps, manual_qa_checklist, related issues / incidents, verdict (shippable | needs-attention | blocked).",
+        "Verdict must be backed by the evidence collected upstream. Do not promote shippable when any high-severity risk lacks a covering test or QA item."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "req-3001",
+    "customer": "Ari Lopez",
+    "service": "Same-day plumbing visit",
+    "window": "Today 2-4pm",
+    "urgency": "High",
+    "status": "scheduled",
+    "estimate": 950,
+    "nextAction": "Confirm arrival window and send preparation checklist."
+  },
+  {
+    "id": "req-3002",
+    "customer": "Beth Carter",
+    "service": "Garage door repair",
+    "window": "Tomorrow morning",
+    "urgency": "Medium",
+    "status": "follow-up",
+    "estimate": 700,
+    "nextAction": "Call back with two morning appointment options."
+  },
+  {
+    "id": "req-3003",
+    "customer": "Noah Singh",
+    "service": "Electrical panel quote",
+    "window": "This week",
+    "urgency": "Low",
+    "status": "new",
+    "estimate": 3600,
+    "nextAction": "Ask for panel photos and schedule estimate."
+  },
+  {
+    "id": "req-3004",
+    "customer": "Maya Brooks",
+    "service": "Emergency roof tarp",
+    "window": "Today",
+    "urgency": "High",
+    "status": "follow-up",
+    "estimate": 1800,
+    "nextAction": "Call immediately and hold emergency slot."
+  },
+  {
+    "id": "req-3005",
+    "customer": "Evan Cho",
+    "service": "Water heater replacement",
+    "window": "Friday afternoon",
+    "urgency": "Medium",
+    "status": "scheduled",
+    "estimate": 2150,
+    "nextAction": "Confirm model and install window."
+  },
+  {
+    "id": "req-3006",
+    "customer": "Iris Grant",
+    "service": "Bathroom remodel consult",
+    "window": "Next week",
+    "urgency": "Low",
+    "status": "new",
+    "estimate": 4200,
+    "nextAction": "Send consult checklist and ask for preferred dates."
+  },
+  {
+    "id": "req-3007",
+    "customer": "Omar Reed",
+    "service": "Fence repair",
+    "window": "Yesterday",
+    "urgency": "Medium",
+    "status": "lost",
+    "estimate": 650,
+    "nextAction": "Mark lost unless customer replies to final check-in."
+  }
+]

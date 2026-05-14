@@ -1,0 +1,108 @@
+{
+  "schema": "spec-forge/v2",
+  "slug": "outperform-ai-teams-fanout",
+  "title": "Multi-tenant analytics workbench factory-of-factories",
+  "shape": "greenfield",
+  "classification": "COMPLEX",
+  "problem": "A tightly coupled ai-teams workflow serializes independent complex-application branches through one growing conversation, reducing throughput and increasing context drag.",
+  "objective": "Build a multi-tenant analytics workbench by dispatching independent AO Operator branches through AO orchestration.",
+  "success_criteria": [
+    "The generated RunSpec contains the full 17-task factory-of-factories topology.",
+    "Spec Forge and Ralph Loop gates run before factory-manager dispatch.",
+    "Five implementation factory branches and five reviewer branches are independently materialized with scoped prompts.",
+    "Validation proves the topology, prompt set, and contract fields are complete."
+  ],
+  "constraints": [
+    "Use OAuth CLI providers only.",
+    "Keep branch context bounded to scoped reads, writes, and durable artifacts.",
+    "Fan out only after Spec Forge and Ralph Loop pass."
+  ],
+  "sensitive_fields": [
+    "provider OAuth credentials",
+    "workspace-local secrets",
+    "full provider transcripts",
+    "tenant data samples that contain private identifiers"
+  ],
+  "negative_constraints": [
+    "MUST NOT configure OPENAI_API_KEY or ANTHROPIC_API_KEY",
+    "MUST NOT pass full transcripts between branches",
+    "MUST NOT dispatch branches with overlapping writes unless the integrator owns the merge contract",
+    "MUST NOT accept closure when any branch returns BLOCKED or REJECTED"
+  ],
+  "shalls": [
+    {
+      "id": "SHALL-001",
+      "text": "The factory plan SHALL declare disjoint read and write scopes for contract, backend, frontend, quality, and docs branches."
+    },
+    {
+      "id": "SHALL-002",
+      "text": "AO orchestration SHALL dispatch the five implementation factories in parallel after Spec Forge and Ralph Loop gates pass."
+    },
+    {
+      "id": "SHALL-003",
+      "text": "Every branch SHALL return a STATUS block with Result, Artifact, Evidence, Concerns, and Blocker fields."
+    },
+    {
+      "id": "SHALL-004",
+      "text": "Evaluator closure SHALL fan in reviewed artifacts and AO event evidence instead of full provider transcripts."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "description": "The topology contains planner, Spec Forge, Ralph Loop, plan-hardener, factory-manager, five parallel factories, five parallel reviewers, integrator, and evaluator.",
+      "oracle": "Topology and RunSpec task checks pass.",
+      "verification": "python3 scripts/validate_factory.py --slug outperform-ai-teams-fanout --topology examples/outperform-ai-teams-fanout/ao-fanout-topology.yaml --contract examples/outperform-ai-teams-fanout/spec-forge.contract.json --json"
+    },
+    {
+      "id": "AC-002",
+      "description": "Provider selection uses OAuth CLI providers only and resolves Codex for implementation branches and Claude for review/closure gates.",
+      "oracle": "Factory doctor reports valid provider resolution and forbidden API key env vars are absent.",
+      "verification": "python3 scripts/factory_doctor.py --env examples/outperform-ai-teams-fanout/provider.env --json"
+    },
+    {
+      "id": "AC-003",
+      "description": "The critical path model demonstrates fan-out/fan-in instead of serialized implementation and review turns.",
+      "oracle": "Expected-throughput document names the fan-out critical path and measurable branch checks.",
+      "verification": "test -f examples/outperform-ai-teams-fanout/expected-throughput.md"
+    }
+  ],
+  "slices": [
+    {
+      "id": "contract-factory",
+      "reads": ["task-brief.md", "spec-forge.contract.json"],
+      "writes": ["contracts/openapi.yaml", "contracts/types.ts", "tests/contract-fixtures/"],
+      "verification": ["contract schema lint passes", "acceptance fixtures are referenced by backend and frontend branches"]
+    },
+    {
+      "id": "backend-factory",
+      "reads": ["contracts/openapi.yaml", "spec-forge.contract.json"],
+      "writes": ["src/server/", "src/storage/", "tests/backend/"],
+      "verification": ["backend tests pass", "tenant isolation and ingestion validation are covered"]
+    },
+    {
+      "id": "frontend-factory",
+      "reads": ["contracts/types.ts", "spec-forge.contract.json"],
+      "writes": ["src/ui/", "src/state/", "tests/frontend/"],
+      "verification": ["frontend smoke tests pass", "dashboard accessibility checks are documented"]
+    },
+    {
+      "id": "quality-factory",
+      "reads": ["spec-forge.contract.json", "tests/"],
+      "writes": ["tests/e2e/", "tests/security/", "tests/performance/"],
+      "verification": ["e2e, security, and performance harness commands are documented"]
+    },
+    {
+      "id": "docs-factory",
+      "reads": ["task-brief.md", "spec-forge.contract.json"],
+      "writes": ["README.md", "docs/setup.md", "docs/prompts.md"],
+      "verification": ["setup guide and prompt samples cover AO Operator operation"]
+    }
+  ],
+  "trigger_hints": [
+    "security-reviewer for tenant isolation and auth boundaries",
+    "performance-reviewer for ingestion and dashboard budget",
+    "ux-reviewer for dashboard accessibility",
+    "docs-writer for setup and prompt samples"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "profile": "smoke-test",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "Small verification chain for checking that an existing feature still works without launching a full implementation pass.",
+  "common_instructions": [
+    "Do not change production code unless the brief explicitly asks for a fix.",
+    "Prefer deterministic commands and clear pass/fail evidence."
+  ],
+  "roles": [
+    {
+      "id": "intake",
+      "role": "Intake",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": [],
+      "reads": ["task brief", "existing docs"],
+      "writes": ["run-artifacts/<slug>/roles/intake.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": ["State the feature under test, the expected signal, and the commands to run."]
+    },
+    {
+      "id": "test-engineer",
+      "role": "Test Engineer",
+      "provider_key": "FACTORY_V3_SLICE_REVIEWER_PROVIDER",
+      "deps": ["intake"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "test targets"],
+      "writes": [
+        "run-artifacts/<slug>/roles/test-engineer.md",
+        "run-artifacts/<slug>/roles/smoke-test-deterministic-replay.json"
+      ],
+      "skills": [],
+      "instructions": [
+        "Run or design the smallest smoke check and capture output.",
+        "When writing the deterministic replay proof, use exactly: {\"schema\":\"ao-operator/smoke-test-deterministic-replay/v1\",\"verdict\":\"PASS\"}"
+      ],
+      "deterministic": true,
+      "replay_command": [
+        "python3",
+        "-c",
+        "from pathlib import Path; Path('smoke-test-deterministic-replay.json').write_text('{\"schema\":\"ao-operator/smoke-test-deterministic-replay/v1\",\"verdict\":\"PASS\"}\\n', encoding='utf-8')"
+      ],
+      "replay_outputs": ["smoke-test-deterministic-replay.json"]
+    },
+    {
+      "id": "evaluator-closer",
+      "role": "Evaluator Closer",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": ["test-engineer"],
+      "reads": ["run-artifacts/<slug>/roles/test-engineer.md", "test output"],
+      "writes": ["docs/evaluations/<slug>-evaluation.md"],
+      "skills": ["skills/closure-verification/SKILL.md"],
+      "instructions": ["Close only when the smoke signal is explicit and reproducible."]
+    }
+  ]
+}

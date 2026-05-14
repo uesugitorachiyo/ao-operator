@@ -1,0 +1,43 @@
+{
+  "profile": "doc-update",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "Fast documentation chain for README, guide, and runbook updates that still require evidence-backed closure.",
+  "common_instructions": [
+    "Keep docs accurate to the live codebase.",
+    "Avoid broad rewrites when a focused correction is enough."
+  ],
+  "roles": [
+    {
+      "id": "intake",
+      "role": "Intake",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": [],
+      "reads": ["task brief", "target docs"],
+      "writes": ["run-artifacts/<slug>/roles/intake.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": ["Identify audience, doc target, and acceptance criteria."]
+    },
+    {
+      "id": "docs-writer",
+      "role": "Docs Writer",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": ["intake"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "target docs", "referenced code"],
+      "writes": ["scoped documentation artifacts from the accepted brief"],
+      "skills": [],
+      "instructions": ["Patch the documentation and verify examples against current code where practical."],
+      "is_mutator": true
+    },
+    {
+      "id": "evaluator-closer",
+      "role": "Evaluator Closer",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": ["docs-writer"],
+      "reads": ["git diff", "run-artifacts/<slug>/roles/intake.md"],
+      "writes": ["docs/evaluations/<slug>-evaluation.md"],
+      "skills": ["skills/closure-verification/SKILL.md"],
+      "instructions": ["Close only when the doc change is accurate, scoped, and linked to evidence."]
+    }
+  ]
+}

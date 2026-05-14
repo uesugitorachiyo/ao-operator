@@ -1,0 +1,63 @@
+{
+  "profile": "bug-fix",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "Short chain for a known defect: capture the bug, plan a narrow fix, implement it, review risk, and close on evidence.",
+  "common_instructions": [
+    "Keep the scope tied to the reported bug and its regression test.",
+    "Prefer the smallest change that proves the defect is fixed."
+  ],
+  "roles": [
+    {
+      "id": "intake",
+      "role": "Intake",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": [],
+      "reads": ["task brief", "failing test output"],
+      "writes": ["run-artifacts/<slug>/roles/intake.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": ["Identify the observed failure, expected behavior, and exact reproduction command."]
+    },
+    {
+      "id": "planner",
+      "role": "Planner",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": ["intake"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "relevant source files"],
+      "writes": ["docs/plans/<slug>-plan.md"],
+      "skills": [],
+      "instructions": ["Produce a minimal fix plan with one verification command."]
+    },
+    {
+      "id": "implementer",
+      "role": "Implementer",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": ["planner"],
+      "reads": ["docs/plans/<slug>-plan.md", "scoped source files"],
+      "writes": ["scoped application artifacts from the accepted plan"],
+      "skills": [],
+      "instructions": ["Apply the planned fix and add or update the focused regression test."],
+      "is_mutator": true
+    },
+    {
+      "id": "reviewer",
+      "role": "Reviewer",
+      "provider_key": "FACTORY_V3_SLICE_REVIEWER_PROVIDER",
+      "deps": ["implementer"],
+      "reads": ["git diff", "test output"],
+      "writes": ["run-artifacts/<slug>/roles/reviewer.md"],
+      "skills": [],
+      "instructions": ["Review for regressions, missing assertions, and over-broad edits."]
+    },
+    {
+      "id": "evaluator-closer",
+      "role": "Evaluator Closer",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": ["reviewer"],
+      "reads": ["docs/plans/<slug>-plan.md", "review artifact", "test output"],
+      "writes": ["docs/evaluations/<slug>-evaluation.md"],
+      "skills": ["skills/closure-verification/SKILL.md"],
+      "instructions": ["Close only when the reproduction is fixed and the regression check is recorded."]
+    }
+  ]
+}

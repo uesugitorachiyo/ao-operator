@@ -1,0 +1,21 @@
+$ ao-operator proof three-host-layered-smoke
+AO Operator live layered Codex smoke
+same codex-smoke profile, local CLI auth, one declared write
+$ inspect mac/final-performance-report.json
+macOS: ACCEPTED done=1 failed=0 wall=9.03x worker=9.30x
+  smoke_nonce=live-20260514-0439
+  gate=PASS factory-v3 layered orchestration example
+$ inspect ubuntu/final-performance-report.json
+Ubuntu: ACCEPTED done=1 failed=0 wall=9.32x worker=9.58x
+  smoke_nonce=ubuntu-20260514-045825
+  gate=PASS factory-v3 layered orchestration example
+$ inspect windows/final-performance-report.json
+Windows non-WSL: ACCEPTED done=1 failed=0 wall=6.40x worker=7.02x
+  smoke_nonce=windows-20260514-051344
+  gate=PASS factory-v3 layered orchestration example
+$ verify visibility boundary
+provider auth: local Codex CLI OAuth/subscription on each host
+provider API keys: not used
+AO Runtime: events + artifacts
+AO Operator: evaluator closure requires Result: ACCEPTED
+RESULT: macOS + Ubuntu + native Windows non-WSL accepted

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="360" viewBox="0 0 1120 360" role="img" aria-labelledby="title desc">
+  <title id="title">AO Operator run lifecycle</title>
+  <desc id="desc">The default AO Operator task lifecycle from intake through evaluator closure.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}.node{fill:#ffffff;stroke:#1f2937;stroke-width:2}.review{fill:#ecfdf5;stroke:#047857;stroke-width:2}.text{font-family:Arial,Helvetica,sans-serif;fill:#111827;font-size:15px}.line{stroke:#334155;stroke-width:2;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1120" height="360"/>
+  <g>
+    <rect class="node" x="35" y="140" width="130" height="70" rx="8"/><text class="text" x="57" y="181">intake</text>
+    <rect class="node" x="205" y="140" width="130" height="70" rx="8"/><text class="text" x="225" y="181">harden plan</text>
+    <rect class="node" x="375" y="140" width="130" height="70" rx="8"/><text class="text" x="399" y="181">assemble</text>
+    <rect class="node" x="545" y="75" width="150" height="70" rx="8"/><text class="text" x="575" y="116">slice A</text>
+    <rect class="node" x="545" y="215" width="150" height="70" rx="8"/><text class="text" x="575" y="256">slice B</text>
+    <rect class="review" x="745" y="140" width="130" height="70" rx="8"/><text class="text" x="777" y="181">review</text>
+    <rect class="node" x="915" y="140" width="130" height="70" rx="8"/><text class="text" x="942" y="181">closure</text>
+  </g>
+  <path class="line" d="M165 175 H205"/>
+  <path class="line" d="M335 175 H375"/>
+  <path class="line" d="M505 170 C520 130 525 110 545 110"/>
+  <path class="line" d="M505 180 C520 220 525 250 545 250"/>
+  <path class="line" d="M695 110 C720 120 725 150 745 165"/>
+  <path class="line" d="M695 250 C720 240 725 200 745 185"/>
+  <path class="line" d="M875 175 H915"/>
+</svg>
+

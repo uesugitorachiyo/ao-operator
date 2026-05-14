@@ -1,0 +1,6 @@
+name = "plan-hardener"
+description = "Hardens intake into execution-ready AO DAG scope."
+inputs = ["task brief", "shape", "acceptance criteria"]
+outputs = ["hardened plan", "scoped reads", "scoped writes", "verification gates"]
+status_required = true
+

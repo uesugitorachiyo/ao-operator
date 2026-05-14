@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="520" viewBox="0 0 1080 520" role="img" aria-labelledby="title desc">
+  <title id="title">AO Operator three OS setup</title>
+  <desc id="desc">One setup prompt creates Ubuntu, macOS, and native Windows setup lanes.</desc>
+  <rect width="1080" height="520" fill="#fffffb"/>
+  <rect x="30" y="30" width="1020" height="460" rx="18" fill="#f4f6f2" stroke="#202426" stroke-width="2"/>
+  <text x="70" y="86" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#161718">One prompt, three native coworkers</text>
+  <text x="72" y="122" font-family="Avenir Next, Segoe UI, sans-serif" font-size="17" fill="#4d565a">AO Operator turns a setup SDD into host-specific lanes, evidence paths, and the next command.</text>
+
+  <rect x="70" y="170" width="250" height="190" rx="12" fill="#ffffff" stroke="#d5dadd"/>
+  <text x="96" y="214" font-family="Avenir Next, Segoe UI, sans-serif" font-size="21" font-weight="800" fill="#1f5f7a">Ubuntu</text>
+  <text x="96" y="244" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">Coordinator</text>
+  <text x="96" y="271" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">release/package lane</text>
+  <text x="96" y="298" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">Linux service proof</text>
+  <text x="96" y="335" font-family="SFMono-Regular, Cascadia Code, monospace" font-size="13" fill="#2d6a4f">ubuntu-evidence.md</text>
+
+  <rect x="415" y="170" width="250" height="190" rx="12" fill="#ffffff" stroke="#d5dadd"/>
+  <text x="441" y="214" font-family="Avenir Next, Segoe UI, sans-serif" font-size="21" font-weight="800" fill="#9a6a15">macOS</text>
+  <text x="441" y="244" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">launchd + Keychain</text>
+  <text x="441" y="271" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">Safari/WebKit check</text>
+  <text x="441" y="298" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">local provider smoke</text>
+  <text x="441" y="335" font-family="SFMono-Regular, Cascadia Code, monospace" font-size="13" fill="#2d6a4f">mac-evidence.md</text>
+
+  <rect x="760" y="170" width="250" height="190" rx="12" fill="#ffffff" stroke="#d5dadd"/>
+  <text x="786" y="214" font-family="Avenir Next, Segoe UI, sans-serif" font-size="21" font-weight="800" fill="#a23b2a">Windows</text>
+  <text x="786" y="244" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">native PowerShell</text>
+  <text x="786" y="271" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">Scheduled Task + Edge</text>
+  <text x="786" y="298" font-family="Avenir Next, Segoe UI, sans-serif" font-size="15" fill="#303537">non-WSL proof</text>
+  <text x="786" y="335" font-family="SFMono-Regular, Cascadia Code, monospace" font-size="13" fill="#2d6a4f">windows-evidence.md</text>
+
+  <path d="M320 265 H415" stroke="#202426" stroke-width="2" stroke-dasharray="8 8"/>
+  <path d="M665 265 H760" stroke="#202426" stroke-width="2" stroke-dasharray="8 8"/>
+  <rect x="310" y="406" width="460" height="46" rx="23" fill="#161718"/>
+  <text x="350" y="435" font-family="SFMono-Regular, Cascadia Code, monospace" font-size="15" fill="#ffffff">ingest three-os-setup-sdd.md -> smoke-test</text>
+</svg>

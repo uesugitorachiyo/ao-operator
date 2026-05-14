@@ -1,0 +1,77 @@
+apiVersion: ao.dev/v1
+kind: Run
+metadata:
+  name: agent-os-phase-draft
+  description: Non-dispatching Agent OS RunSpec draft rendered from scoped handoff packets.
+spec:
+  tasks:
+    - id: agent-os-planner
+      kind: agent
+      deps: []
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/agent-os-phase/01-planner.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchAuthorized: false
+    - id: agent-os-plan-hardener
+      kind: agent
+      deps: ["agent-os-planner"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/agent-os-phase/02-plan-hardener.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchAuthorized: false
+    - id: agent-os-factory-manager
+      kind: agent
+      deps: ["agent-os-plan-hardener"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/agent-os-phase/03-factory-manager.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchAuthorized: false
+    - id: agent-os-implementer
+      kind: agent
+      deps: ["agent-os-factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/agent-os-phase/04-implementer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchAuthorized: false
+    - id: agent-os-slice-reviewer
+      kind: agent
+      deps: ["agent-os-implementer"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/agent-os-phase/05-slice-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchAuthorized: false
+    - id: agent-os-integrator
+      kind: agent
+      deps: ["agent-os-slice-reviewer"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/agent-os-phase/06-integrator.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchAuthorized: false
+    - id: agent-os-evaluator-closer
+      kind: agent
+      deps: ["agent-os-integrator"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/agent-os-phase/07-evaluator-closer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchAuthorized: false

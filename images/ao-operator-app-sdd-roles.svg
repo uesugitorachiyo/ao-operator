@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">AO Operator app SDD role workflow</title>
+  <desc id="desc">AO Operator turns an app SDD into a greenfield role graph with scoped responsibilities.</desc>
+  <defs>
+    <style>
+      .bg{fill:#0f172a}
+      .card{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
+      .blue{fill:#dbeafe;stroke:#60a5fa;stroke-width:2}
+      .green{fill:#dcfce7;stroke:#4ade80;stroke-width:2}
+      .gold{fill:#fef3c7;stroke:#fbbf24;stroke-width:2}
+      .red{fill:#fee2e2;stroke:#f87171;stroke-width:2}
+      .h{font:800 39px Inter,Arial,sans-serif;fill:#f8fafc}
+      .p{font:500 21px Inter,Arial,sans-serif;fill:#cbd5e1}
+      .label{font:800 21px Inter,Arial,sans-serif;fill:#0f172a}
+      .small{font:500 16px Inter,Arial,sans-serif;fill:#334155}
+      .arrow{stroke:#93c5fd;stroke-width:4;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#93c5fd"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+  <text class="h" x="68" y="82">2. AO Operator creates the agent workflow</text>
+  <text class="p" x="68" y="124">The request becomes scoped roles, not one oversized prompt.</text>
+
+  <rect class="blue" x="62" y="220" width="160" height="150" rx="18"/>
+  <text class="label" x="104" y="274">Intake</text>
+  <text class="small" x="86" y="316">clarify goal</text>
+  <text class="small" x="86" y="342">and non-goals</text>
+
+  <rect class="green" x="272" y="220" width="160" height="150" rx="18"/>
+  <text class="label" x="300" y="274">Checker</text>
+  <text class="small" x="296" y="316">claim and</text>
+  <text class="small" x="296" y="342">citation pass</text>
+
+  <rect class="gold" x="482" y="220" width="160" height="150" rx="18"/>
+  <text class="label" x="506" y="274">Evidence</text>
+  <text class="small" x="506" y="316">source map</text>
+  <text class="small" x="506" y="342">and findings</text>
+
+  <rect class="card" x="692" y="220" width="160" height="150" rx="18"/>
+  <text class="label" x="716" y="274">Verifier</text>
+  <text class="small" x="716" y="316">acceptance</text>
+  <text class="small" x="716" y="342">criteria</text>
+
+  <rect class="red" x="902" y="220" width="220" height="150" rx="18"/>
+  <text class="label" x="948" y="274">Reviewer</text>
+  <text class="small" x="930" y="316">UX, tests, risk,</text>
+  <text class="small" x="930" y="342">closure evidence</text>
+
+  <path class="arrow" d="M222 295 H272"/>
+  <path class="arrow" d="M432 295 H482"/>
+  <path class="arrow" d="M642 295 H692"/>
+  <path class="arrow" d="M852 295 H902"/>
+
+  <rect class="card" x="162" y="474" width="876" height="102" rx="20"/>
+  <text class="label" x="204" y="520">RunSpec + status artifacts</text>
+  <text class="small" x="204" y="552">Every role has a handoff boundary, expected output, and evidence path before live provider work starts.</text>
+</svg>

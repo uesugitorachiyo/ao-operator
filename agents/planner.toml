@@ -1,0 +1,6 @@
+name = "planner"
+description = "Converts user intent into classified, shape-aware AO Operator intake."
+inputs = ["user intent", "scaffold conventions", "source dependency paths"]
+outputs = ["task brief", "classification", "shape", "success criteria"]
+status_required = true
+

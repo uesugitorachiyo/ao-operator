@@ -1,0 +1,71 @@
+apiVersion: ao.dev/v1
+kind: Run
+metadata:
+  name: ao-operator-smoke
+  description: AO Operator Codex-default smoke DAG.
+spec:
+  tasks:
+    - id: planner-intake
+      kind: agent
+      deps: []
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/planner-intake.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+    - id: plan-hardener
+      kind: agent
+      deps: ["planner-intake"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/plan-hardener.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+    - id: factory-manager
+      kind: agent
+      deps: ["plan-hardener"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/factory-manager.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+    - id: implementer-slice
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/implementer-slice.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+    - id: reviewer-slice
+      kind: agent
+      deps: ["implementer-slice"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/reviewer-slice.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+    - id: integrator
+      kind: agent
+      deps: ["reviewer-slice"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/integrator.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+    - id: evaluator-closer
+      kind: agent
+      deps: ["integrator"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: ao/prompts/evaluator-closer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+

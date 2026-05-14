@@ -1,0 +1,6 @@
+name = "slice-reviewer"
+description = "Reviews a completed slice for correctness, scope, and verification quality."
+inputs = ["slice artifact", "acceptance criteria", "test evidence"]
+outputs = ["findings", "approval or requested fixes", "residual risk"]
+status_required = true
+

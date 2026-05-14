@@ -1,0 +1,73 @@
+{
+  "profile": "greenfield",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "New-feature chain for small tools and app slices: clarify the goal, sketch architecture, plan, implement, review, and close.",
+  "common_instructions": [
+    "Build the smallest usable version that satisfies the brief.",
+    "Keep interfaces explicit and document any deferred work."
+  ],
+  "roles": [
+    {
+      "id": "intake",
+      "role": "Intake",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": [],
+      "reads": ["task brief", "nearby code"],
+      "writes": ["run-artifacts/<slug>/roles/intake.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": ["Capture goal, users, acceptance criteria, and non-goals."]
+    },
+    {
+      "id": "architect",
+      "role": "Architect",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": ["intake"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "nearby code"],
+      "writes": ["run-artifacts/<slug>/roles/architect.md"],
+      "skills": [],
+      "instructions": ["Choose module boundaries and integration points without overbuilding."]
+    },
+    {
+      "id": "planner",
+      "role": "Planner",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": ["architect"],
+      "reads": ["run-artifacts/<slug>/roles/architect.md"],
+      "writes": ["docs/plans/<slug>-plan.md"],
+      "skills": [],
+      "instructions": ["Break the feature into executable steps with verification commands."]
+    },
+    {
+      "id": "implementer",
+      "role": "Implementer",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": ["planner"],
+      "reads": ["docs/plans/<slug>-plan.md", "scoped source files"],
+      "writes": ["scoped application artifacts from the accepted plan"],
+      "skills": [],
+      "instructions": ["Implement the first usable slice and include focused tests or examples."],
+      "is_mutator": true
+    },
+    {
+      "id": "reviewer",
+      "role": "Reviewer",
+      "provider_key": "FACTORY_V3_SLICE_REVIEWER_PROVIDER",
+      "deps": ["implementer"],
+      "reads": ["git diff", "test output"],
+      "writes": ["run-artifacts/<slug>/roles/reviewer.md"],
+      "skills": [],
+      "instructions": ["Review correctness, ergonomics, missing tests, and integration risk."]
+    },
+    {
+      "id": "evaluator-closer",
+      "role": "Evaluator Closer",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": ["reviewer"],
+      "reads": ["docs/plans/<slug>-plan.md", "review artifact", "test output"],
+      "writes": ["docs/evaluations/<slug>-evaluation.md"],
+      "skills": ["skills/closure-verification/SKILL.md"],
+      "instructions": ["Close only when the acceptance criteria are demonstrated."]
+    }
+  ]
+}

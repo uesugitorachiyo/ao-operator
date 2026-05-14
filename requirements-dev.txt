@@ -1,0 +1,12 @@
+# AO Operator dev dependencies (FU1 from lane/v0.1.1-mac-cross-platform-verify)
+#
+# Production code in scripts/ does not import any third-party Python
+# packages — AO Operator is intentionally stdlib-only. These deps exist
+# only for the test suite + local-validation gate, not for runtime use.
+#
+# Install on a clean clone:
+#   python -m pip install -r requirements-dev.txt
+#
+# CI installs this via .github/workflows/test.yml.
+pytest
+pyyaml

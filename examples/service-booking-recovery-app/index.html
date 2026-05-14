@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Service Booking Recovery</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <strong>Service Booking Recovery</strong>
+      <span>Outcome-driven app sample</span>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Owner view</p>
+          <h1>Turn open requests into booked work today.</h1>
+          <p>See what is still saveable, capture a new request, and get a clear next action for each customer.</p>
+        </div>
+        <section class="metrics" aria-label="Booking recovery summary">
+          <article><span id="totalRequests">0</span><small>requests</small></article>
+          <article><span id="urgentRequests">0</span><small>urgent</small></article>
+          <article><span id="scheduledRequests">0</span><small>scheduled</small></article>
+          <article><span id="saveableRevenue">$0</span><small>saveable revenue</small></article>
+        </section>
+      </section>
+
+      <section class="workspace">
+        <form id="requestForm" class="panel">
+          <h2>Capture request</h2>
+          <label>Customer name <input name="customer" value="Sam Rivera" required></label>
+          <label>Service <input name="service" value="AC tune-up" required></label>
+          <label>Requested window <input name="window" value="Today after 3pm" required></label>
+          <label>Urgency
+            <select name="urgency">
+              <option>High</option>
+              <option selected>Medium</option>
+              <option>Low</option>
+            </select>
+          </label>
+          <label>Estimated value <input name="estimate" type="number" value="550" min="0"></label>
+          <button type="submit">Add request</button>
+        </form>
+
+        <section class="panel board">
+          <h2>Recovery board</h2>
+          <div id="columns" class="columns"></div>
+        </section>
+
+        <aside class="panel detail">
+          <h2>Next action</h2>
+          <strong id="selectedCustomer">Select a request</strong>
+          <p id="selectedMeta">No request selected.</p>
+          <textarea id="nextAction" rows="8" aria-label="Editable next action"></textarea>
+          <p class="notice">Demo only: no SMS, email, payment, CRM, or phone-provider integration runs.</p>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

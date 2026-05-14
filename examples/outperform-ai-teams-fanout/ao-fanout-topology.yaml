@@ -1,0 +1,187 @@
+apiVersion: ao.dev/v1
+kind: Run
+metadata:
+  name: outperform-ai-teams-fanout
+  description: >
+    Illustrative AO Operator factory-of-factories topology with Spec Forge,
+    Ralph Loop, factory-manager, and AO fan-out/fan-in. factory_run.py
+    materializes this 17-task DAG when invoked with --topology.
+spec:
+  tasks:
+    - id: planner-intake
+      kind: agent
+      deps: []
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/planner-intake.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: spec-forge-contract
+      kind: agent
+      deps: ["planner-intake"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/spec-forge-contract.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        contractFile: examples/outperform-ai-teams-fanout/spec-forge.contract.json
+
+    - id: ralph-loop
+      kind: agent
+      deps: ["spec-forge-contract"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/ralph-loop.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        gate: greenfield-readiness
+
+    - id: plan-hardener
+      kind: agent
+      deps: ["ralph-loop"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/plan-hardener.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: factory-manager
+      kind: agent
+      deps: ["plan-hardener"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/factory-manager.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchMode: fan-out
+
+    - id: contract-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/contract-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: backend-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/backend-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: frontend-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/frontend-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: quality-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/quality-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: docs-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/docs-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: contract-reviewer
+      kind: agent
+      deps: ["contract-factory"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/contract-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: backend-reviewer
+      kind: agent
+      deps: ["backend-factory"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/backend-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: frontend-reviewer
+      kind: agent
+      deps: ["frontend-factory"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/frontend-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: quality-reviewer
+      kind: agent
+      deps: ["quality-factory"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/quality-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: docs-reviewer
+      kind: agent
+      deps: ["docs-factory"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/docs-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: integrator
+      kind: agent
+      deps:
+        - contract-reviewer
+        - backend-reviewer
+        - frontend-reviewer
+        - quality-reviewer
+        - docs-reviewer
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/integrator.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: evaluator-closer
+      kind: agent
+      deps: ["integrator"]
+      spec:
+        provider: claude
+        agent: claude-default
+        promptFile: run-artifacts/outperform-ai-teams-fanout/prompts/evaluator-closer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml

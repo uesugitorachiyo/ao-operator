@@ -1,0 +1,6 @@
+name = "factory-manager"
+description = "Selects the smallest sufficient role set and DAG shape."
+inputs = ["hardened plan", "slice candidates", "trigger hints"]
+outputs = ["team plan", "slice ownership", "dependencies", "review gates"]
+status_required = true
+

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">AO Operator autonomous local agent CLI</title>
+  <desc id="desc">A natural-language outcome request goes into AO Operator, which runs planner, implementer, reviewer, integrator, and closer roles through local Codex and Claude Code CLI subscriptions, producing a verified deliverable and replayable evidence.</desc>
+  <defs>
+    <style>
+      .bg{fill:#0f172a}
+      .panel{fill:#111827;stroke:#334155;stroke-width:2}
+      .primary{fill:#e0f2fe;stroke:#38bdf8;stroke-width:3}
+      .role{fill:#f8fafc;stroke:#64748b;stroke-width:2}
+      .provider{fill:#fef3c7;stroke:#f59e0b;stroke-width:2}
+      .artifact{fill:#dcfce7;stroke:#22c55e;stroke-width:2}
+      .guard{fill:#fee2e2;stroke:#ef4444;stroke-width:2}
+      .title{font-family:Inter,Arial,Helvetica,sans-serif;font-size:36px;font-weight:700;fill:#f8fafc}
+      .subtitle{font-family:Inter,Arial,Helvetica,sans-serif;font-size:20px;fill:#cbd5e1}
+      .label{font-family:Inter,Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;fill:#0f172a}
+      .small{font-family:Inter,Arial,Helvetica,sans-serif;font-size:14px;fill:#334155}
+      .darklabel{font-family:Inter,Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;fill:#f8fafc}
+      .darksmall{font-family:Inter,Arial,Helvetica,sans-serif;font-size:14px;fill:#cbd5e1}
+      .arrow{stroke:#94a3b8;stroke-width:3;fill:none;marker-end:url(#arrow)}
+      .softarrow{stroke:#38bdf8;stroke-width:3;fill:none;marker-end:url(#blueArrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="blueArrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1280" height="720"/>
+  <text class="title" x="64" y="76">Describe the outcome. AO Operator drives the work to done.</text>
+  <text class="subtitle" x="64" y="112">Natural-language requests become roles, cross-platform checks, closure gates, and evidence.</text>
+
+  <rect class="panel" x="64" y="166" width="220" height="170" rx="14"/>
+  <text class="darklabel" x="94" y="213">Your outcome</text>
+  <text class="darksmall" x="94" y="247">build an app</text>
+  <text class="darksmall" x="94" y="274">improve a repo</text>
+  <text class="darksmall" x="94" y="301">verify on 3 OSes</text>
+
+  <rect class="primary" x="354" y="148" width="270" height="206" rx="16"/>
+  <text class="label" x="425" y="197">AO Operator</text>
+  <text class="small" x="392" y="231">profile JSON + RunSpec</text>
+  <text class="small" x="392" y="258">scoped reads / writes</text>
+  <text class="small" x="392" y="285">provider routing from .env</text>
+  <text class="small" x="392" y="312">no provider API keys</text>
+
+  <path class="softarrow" d="M284 251 H354"/>
+
+  <rect class="provider" x="706" y="148" width="220" height="92" rx="12"/>
+  <text class="label" x="754" y="187">Codex CLI</text>
+  <text class="small" x="742" y="214">subscription auth</text>
+  <rect class="provider" x="706" y="262" width="220" height="92" rx="12"/>
+  <text class="label" x="742" y="301">Claude Code</text>
+  <text class="small" x="742" y="328">subscription auth</text>
+
+  <path class="arrow" d="M624 215 H706"/>
+  <path class="arrow" d="M624 291 H706"/>
+
+  <rect class="panel" x="1000" y="148" width="216" height="206" rx="16"/>
+  <text class="darklabel" x="1050" y="191">Agent roles</text>
+  <text class="darksmall" x="1034" y="225">planner</text>
+  <text class="darksmall" x="1034" y="252">implementer</text>
+  <text class="darksmall" x="1034" y="279">reviewer</text>
+  <text class="darksmall" x="1034" y="306">integrator</text>
+  <text class="darksmall" x="1034" y="333">evaluator closer</text>
+
+  <path class="arrow" d="M926 194 H1000"/>
+  <path class="arrow" d="M926 308 H1000"/>
+
+  <rect class="guard" x="184" y="438" width="214" height="126" rx="14"/>
+  <text class="label" x="238" y="482">Policy gates</text>
+  <text class="small" x="220" y="514">fail closed</text>
+  <text class="small" x="220" y="541">approval aware</text>
+
+  <rect class="artifact" x="456" y="418" width="220" height="166" rx="14"/>
+  <text class="label" x="506" y="462">Outputs</text>
+  <text class="small" x="492" y="496">app / patch</text>
+  <text class="small" x="492" y="523">docs</text>
+  <text class="small" x="492" y="550">profile artifacts</text>
+
+  <rect class="artifact" x="734" y="418" width="236" height="166" rx="14"/>
+  <text class="label" x="782" y="462">Evidence pack</text>
+  <text class="small" x="770" y="496">rendered prompts</text>
+  <text class="small" x="770" y="523">events + artifacts</text>
+  <text class="small" x="770" y="550">replay + signatures</text>
+
+  <rect class="panel" x="1028" y="438" width="188" height="126" rx="14"/>
+  <text class="darklabel" x="1067" y="482">Repeat</text>
+  <text class="darksmall" x="1060" y="514">review</text>
+  <text class="darksmall" x="1060" y="541">rerun</text>
+
+  <path class="arrow" d="M1108 354 C1108 394 1110 410 1114 438"/>
+  <path class="arrow" d="M1000 501 H970"/>
+  <path class="arrow" d="M734 501 H676"/>
+  <path class="arrow" d="M456 501 H398"/>
+
+  <text class="subtitle" x="64" y="656">One command path for power users: roles instead of one-off chats, artifacts instead of lost context.</text>
+</svg>

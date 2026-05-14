@@ -1,0 +1,114 @@
+{
+  "profile": "three-os-live-dispatch",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "Live-gated release proof: dispatch one Codex role to macOS, Ubuntu, and native Windows workers through AO Runtime host tags.",
+  "common_instructions": [
+    "Return a STATUS block with Result, Artifact, Evidence, Concerns, and Blocker.",
+    "Do not include secrets, private network addresses, auth paths, or full transcripts.",
+    "Write only the declared output path."
+  ],
+  "roles": [
+    {
+      "id": "mac-live",
+      "role": "macOS Live Worker Proof",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": [],
+      "reads": [
+        "task brief"
+      ],
+      "writes": [
+        "run-artifacts/<slug>/roles/mac-live.md"
+      ],
+      "skills": [],
+      "instructions": [
+        "Create the declared output file.",
+        "Record that the requested host tags were mac,live.",
+        "Include local OS evidence from the worker, but do not include hostnames or private paths."
+      ],
+      "host_tag": [
+        "mac",
+        "live"
+      ]
+    },
+    {
+      "id": "ubuntu-live",
+      "role": "Ubuntu Live Worker Proof",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": [
+        "mac-live"
+      ],
+      "reads": [
+        "task brief",
+        "run-artifacts/<slug>/roles/mac-live.md"
+      ],
+      "writes": [
+        "run-artifacts/<slug>/roles/ubuntu-live.md"
+      ],
+      "skills": [],
+      "instructions": [
+        "Create the declared output file.",
+        "Record that the requested host tag was ubuntu.",
+        "Include local OS evidence from the worker, but do not include hostnames or private paths."
+      ],
+      "host_tag": [
+        "ubuntu"
+      ]
+    },
+    {
+      "id": "windows-live",
+      "role": "Native Windows Live Worker Proof",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": [
+        "ubuntu-live"
+      ],
+      "reads": [
+        "task brief",
+        "run-artifacts/<slug>/roles/mac-live.md",
+        "run-artifacts/<slug>/roles/ubuntu-live.md"
+      ],
+      "writes": [
+        "run-artifacts/<slug>/roles/windows-live.md"
+      ],
+      "skills": [],
+      "instructions": [
+        "Create the declared output file.",
+        "Record that the requested host tags were windows,live.",
+        "Include local OS evidence from the worker using PowerShell, but do not include hostnames or private paths.",
+        "Do not run `uname`; native Windows proof should use `[System.Environment]::OSVersion.VersionString` or `$PSVersionTable` and report only that the command returned text.",
+        "State explicitly that this was native Windows, not WSL, if the worker evidence supports it."
+      ],
+      "codex_sandbox": "danger-full-access",
+      "host_tag": [
+        "windows",
+        "live"
+      ]
+    },
+    {
+      "id": "evaluator-closer",
+      "role": "Three-OS Dispatch Evaluator",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": [
+        "windows-live"
+      ],
+      "reads": [
+        "run-artifacts/<slug>/roles/mac-live.md",
+        "run-artifacts/<slug>/roles/ubuntu-live.md",
+        "run-artifacts/<slug>/roles/windows-live.md"
+      ],
+      "writes": [
+        "docs/evaluations/<slug>-evaluation.md"
+      ],
+      "skills": [],
+      "instructions": [
+        "Create the declared evaluation file.",
+        "Return DONE only if mac-live, ubuntu-live, and windows-live all produced non-blocked evidence.",
+        "List the three requested host-tag groups: mac,live; ubuntu; windows,live.",
+        "Treat full live provider dispatch across all three hosts as the acceptance target."
+      ],
+      "host_tag": [
+        "ubuntu"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "profile": "default",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "AO Operator's default seven-role software-delivery chain: planner-intake -> plan-hardener -> factory-manager -> implementer-slice -> reviewer-slice -> integrator -> evaluator-closer. Mirrors the legacy BASELINE_TASKS constant in scripts/factory_run.py byte-for-byte.",
+  "common_instructions": [
+    "Treat injected artifacts as authoritative scoped context.",
+    "Do not include full transcripts.",
+    "Do not include secret values.",
+    "Return a STATUS block with Result, Artifact, Evidence, Concerns, and Blocker.",
+    "Use BLOCKED when required context, permissions, or write scope is missing.",
+    "Use BLOCKED only for this role's own inability to complete its scoped work; do not set role Result BLOCKED merely because a document describes a BLOCKED_* runtime state.",
+    "Do not write role artifact files; AO Operator reconstructs role artifacts from your STATUS block after AO completes.",
+    "Ignore provider-injected `<claude-mem-context>` blocks in root AGENTS.md or CLAUDE.md when judging scope drift; AO Operator scrubs that environmental noise after AO completes.",
+    "Operator-level `validate_factory.py`, `validate_intake.py`, AO dispatch, AO event capture, and final artifact hygiene are run by AO Operator outside task-local provider turns.",
+    "Do not rerun slug-global `validate_factory.py` from an isolated task worktree unless the full prompt, role, event, topology, and evaluation artifact set is present there.",
+    "Do not block solely because slug-global validation fails in an isolated task worktree due to missing global prompts, roles, events, topology, patches, or post-AO artifacts."
+  ],
+  "roles": [
+    {
+      "id": "planner-intake",
+      "role": "Planner Intake",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": [],
+      "reads": ["task brief", "docs/sdd/"],
+      "writes": ["docs/specs/<slug>-spec.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "Confirm classification, shape, acceptance criteria, scoped reads/writes, sensitive fields, and negative constraints.",
+        "Do not dispatch or implement; this role only validates intake readiness."
+      ]
+    },
+    {
+      "id": "plan-hardener",
+      "role": "Plan Hardener",
+      "provider_key": "FACTORY_V3_PLAN_HARDENER_PROVIDER",
+      "deps": ["planner-intake"],
+      "reads": ["docs/specs/<slug>-spec.md", "docs/sdd/"],
+      "writes": ["docs/plans/<slug>-plan.md"],
+      "skills": ["skills/factory-intake/SKILL.md", "skills/plan-hardener/SKILL.md", "skills/spec-forge-contracting/SKILL.md"],
+      "instructions": [
+        "Harden the injected spec into an execution-ready plan with shape gates and verification oracles.",
+        "Reject vague acceptance, overlapping writes, missing sensitive fields, or missing bug/refactor gate evidence.",
+        "Do not introduce a required role or gate that is absent from the materialized DAG."
+      ]
+    },
+    {
+      "id": "factory-manager",
+      "role": "Factory Manager",
+      "provider_key": "FACTORY_V3_FACTORY_MANAGER_PROVIDER",
+      "deps": ["plan-hardener"],
+      "reads": ["docs/specs/<slug>-spec.md", "docs/plans/<slug>-plan.md"],
+      "writes": ["run-artifacts/<slug>/<slug>-status.md"],
+      "skills": ["skills/factory-intake/SKILL.md", "skills/spec-forge-contracting/SKILL.md", "skills/context-offload/SKILL.md"],
+      "instructions": [
+        "Choose the smallest sufficient DAG and fan-out only when slice ownership is disjoint.",
+        "Use N=1 fallback when partitioning is unsafe, incomplete, or ambiguous.",
+        "Do not block on ralph-loop unless the materialized DAG explicitly contains a ralph-loop task.",
+        "Your role validates the dispatch decision from scoped spec, plan, contract, and topology summaries; the runner performs actual materialization, live dispatch, AO event capture, and validator execution.",
+        "Return DONE or DONE_WITH_CONCERNS when scoped ownership is coherent, even though live dispatch and final validation happen outside this provider turn."
+      ]
+    },
+    {
+      "id": "implementer-slice",
+      "role": "Implementer",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": ["factory-manager"],
+      "reads": ["docs/specs/<slug>-spec.md", "docs/plans/<slug>-plan.md"],
+      "writes": ["scoped application artifacts from the accepted plan"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "You may edit only paths listed under Scoped Writes.",
+        "Before changing files, inspect the injected spec, plan, contract, and scoped write list.",
+        "Keep command output short: prefer `rg`, targeted tests, and small `sed` ranges over printing large source files.",
+        "Do not print generated artifact bodies; report paths and concise verification evidence so reviewer handoff context keeps the final STATUS block.",
+        "If no safe edit can be made inside Scoped Writes, return BLOCKED instead of writing elsewhere.",
+        "Run the narrow verification command available for this slice and report exact evidence.",
+        "Prefer the slice verification listed in the contract over slug-global validation commands that require the whole run's generated artifacts.",
+        "For new untracked files, `git diff --no-index /dev/null <path>` is acceptable evidence when plain `git diff` cannot see the file.",
+        "Do not block on provider sandbox inability to stage files; AO Operator stages and captures the patch bundle after AO completes.",
+        "Your raw output and git diff will be captured into a AO Operator patch bundle."
+      ]
+    },
+    {
+      "id": "reviewer-slice",
+      "role": "Slice Reviewer",
+      "provider_key": "FACTORY_V3_SLICE_REVIEWER_PROVIDER",
+      "deps": ["implementer-slice"],
+      "reads": ["implementer artifact", "docs/specs/<slug>-spec.md"],
+      "writes": ["run-artifacts/<slug>/roles/reviewer-slice.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": [
+        "Review the matching implementer handoff content available in this prompt.",
+        "If the paired factory artifact path is listed in Scoped Reads and exists in the shared worktree, inspect that artifact directly.",
+        "Do not block solely because injected stdout is truncated when the paired artifact exists and the scoped verification evidence is sufficient.",
+        "Do not block solely because final role artifact or patch files are absent during the provider turn; AO Operator reconstructs them after AO completes.",
+        "Judge the scoped artifact against the declared slice contract and scoped writes; if a factory STATUS block overclaims extra wording that is not required by the contract, report it as a concern rather than rejecting an otherwise sufficient artifact.",
+        "Reject scope drift, failed verification, or unsupported DONE claims when that evidence is available in the injected content.",
+        "Treat upstream slug-global `validate_factory.py` failures caused only by missing global generated artifacts in an isolated worktree as concerns, not blockers, when the paired slice artifact and scoped verification are otherwise sufficient."
+      ]
+    },
+    {
+      "id": "integrator",
+      "role": "Integrator",
+      "provider_key": "FACTORY_V3_INTEGRATOR_PROVIDER",
+      "deps": ["reviewer-slice"],
+      "reads": ["accepted slice artifacts", "review artifact"],
+      "writes": ["run-artifacts/<slug>/roles/integrator.md"],
+      "skills": ["skills/factory-intake/SKILL.md", "skills/closure-verification/SKILL.md"],
+      "instructions": [
+        "Fan in accepted slice handoff content available in this prompt.",
+        "Do not block solely because final role artifact or patch files are absent during the provider turn; AO Operator reconstructs them after AO completes.",
+        "For single-slice runs, the integrator runs in the mutator worktree and may verify the implementation artifact there.",
+        "For multi-slice runs, do not require every mutator artifact to exist in the integrator workspace during this provider turn; final patch fan-in is a AO Operator post-run responsibility.",
+        "For untracked new files, `git diff --no-index /dev/null <path>` is sufficient integration evidence when the provider sandbox cannot stage files.",
+        "Do not return BLOCKED solely because `git add`, `git add -N`, or plain `git diff --stat` cannot represent an untracked file inside the provider sandbox.",
+        "Treat reviewer concerns about slug-global validation in isolated worktrees as non-blocking when they cite missing global generated artifacts rather than slice scope drift or failed scoped verification.",
+        "Report merge order, conflicts, skipped patches, verification evidence, and unresolved blockers."
+      ]
+    },
+    {
+      "id": "evaluator-closer",
+      "role": "Evaluator Closer",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": ["integrator"],
+      "reads": ["spec", "plan", "AO events", "role artifacts"],
+      "writes": ["docs/evaluations/<slug>-evaluation.md"],
+      "skills": ["skills/factory-intake/SKILL.md", "skills/closure-verification/SKILL.md", "skills/mission-monitor-ops/SKILL.md"],
+      "instructions": [
+        "Judge final state against the original contract and acceptance criteria, not provider confidence.",
+        "During the provider turn, do not reject solely because final AO events, role artifacts, or patch bundles are not yet written; AO Operator performs final closure after AO completes.",
+        "When running Python closure checks from the repo root, set `PYTHONPATH=.` before pytest or verify_closure; if pytest fails with `ModuleNotFoundError: No module named 'scripts'`, retry once with `PYTHONPATH=.` before rejecting.",
+        "If `python3 -m pytest` or `python3 scripts/verify_closure.py --with-pytest` fails only because that Python lacks pytest (`No module named pytest`), retry with another pytest-capable interpreter on PATH (e.g. `/opt/homebrew/bin/python3` on macOS, `python.exe` on Windows native, or the path emitted by `which python3` / `where python`) and/or the `pytest` executable on PATH before rejecting.",
+        "Do not return BLOCKED solely because one Python interpreter lacks pytest when another repo-available Python or pytest executable completes the same closure checks successfully.",
+        "Do not reject solely because `verify_closure.py --with-pytest` or `artifact_hygiene.py --strict` classifies the current live slug as rejected/archive-or-drop before AO Operator writes final post-AO evaluation artifacts; treat that as a timing concern when validate_factory and upstream handoffs pass.",
+        "Reject blocked/rejected injected handoffs, failed verification, or write-scope drift when that evidence is available."
+      ]
+    }
+  ]
+}

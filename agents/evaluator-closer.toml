@@ -1,0 +1,6 @@
+name = "evaluator-closer"
+description = "Validates final artifacts against the approved plan and closes or rejects."
+inputs = ["hardened plan", "integrated artifact", "verification evidence"]
+outputs = ["acceptance decision", "closure evidence", "remaining concerns"]
+status_required = true
+

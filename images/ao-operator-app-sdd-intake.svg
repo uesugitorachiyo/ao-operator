@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">AO Operator app SDD intake</title>
+  <desc id="desc">A natural-language app outcome and SDD enter AO Operator as a high-quality input.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f6f8fb}
+      .panel{fill:#ffffff;stroke:#d8e0ea;stroke-width:2}
+      .dark{fill:#14213d}
+      .accent{fill:#0ea5e9}
+      .soft{fill:#e0f2fe}
+      .green{fill:#dcfce7}
+      .h{font:800 40px Inter,Arial,sans-serif;fill:#0f172a}
+      .p{font:500 21px Inter,Arial,sans-serif;fill:#425466}
+      .label{font:800 20px Inter,Arial,sans-serif;fill:#0f172a}
+      .small{font:500 17px Inter,Arial,sans-serif;fill:#4b5563}
+      .mono{font:500 16px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#1f2937}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+  <text class="h" x="70" y="82">1. Describe the outcome</text>
+  <text class="p" x="70" y="124">The user starts with a business result, not a list of implementation chores.</text>
+
+  <rect class="panel" x="70" y="170" width="470" height="410" rx="18"/>
+  <rect class="soft" x="100" y="206" width="410" height="58" rx="12"/>
+  <text class="label" x="124" y="242">Natural-language request</text>
+  <text class="small" x="104" y="308">Verify material claims in an earnings note.</text>
+  <text class="small" x="104" y="346">Match each claim to a source citation,</text>
+  <text class="small" x="104" y="384">flag unsupported statements, and stage review.</text>
+  <text class="small" x="104" y="438">Make the evidence readable before anyone</text>
+  <text class="small" x="104" y="476">accepts the AI-written work product.</text>
+
+  <rect class="panel" x="620" y="170" width="510" height="410" rx="18"/>
+  <rect class="green" x="650" y="206" width="450" height="58" rx="12"/>
+  <text class="label" x="674" y="242">Ingestible SDD</text>
+  <text class="mono" x="654" y="304">examples/ingestible-specs/</text>
+  <text class="mono" x="654" y="334">financial-citation-audit-sdd.md</text>
+  <text class="small" x="654" y="394">Goal, source-pack scope, audit criteria,</text>
+  <text class="small" x="654" y="432">non-goals, compliance boundaries,</text>
+  <text class="small" x="654" y="470">and review-stage expectations.</text>
+
+  <rect class="dark" x="264" y="620" width="672" height="56" rx="28"/>
+  <text class="p" x="318" y="656" fill="#ffffff">Good input gives the agent team enough intent to produce better output.</text>
+</svg>

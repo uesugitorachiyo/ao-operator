@@ -1,0 +1,58 @@
+schema: ao-operator/runspec/v1
+slug: bug-fix
+profile: bug-fix
+brief: examples/starters/bug-fix-example.md
+roles:
+- id: intake
+  provider_key: FACTORY_V3_PLANNER_PROVIDER
+  host_tag: []
+  deps: []
+  reads:
+  - task brief
+  - failing test output
+  writes:
+  - run-artifacts/<slug>/roles/intake.md
+- id: planner
+  provider_key: FACTORY_V3_PLANNER_PROVIDER
+  host_tag: []
+  deps:
+  - intake
+  reads:
+  - run-artifacts/<slug>/roles/intake.md
+  - relevant source files
+  writes:
+  - docs/plans/<slug>-plan.md
+- id: implementer
+  provider_key: FACTORY_V3_IMPLEMENTER_PROVIDER
+  host_tag: []
+  deps:
+  - planner
+  reads:
+  - docs/plans/<slug>-plan.md
+  - scoped source files
+  writes:
+  - scoped application artifacts from the accepted plan
+- id: reviewer
+  provider_key: FACTORY_V3_SLICE_REVIEWER_PROVIDER
+  host_tag: []
+  deps:
+  - implementer
+  reads:
+  - git diff
+  - test output
+  writes:
+  - run-artifacts/<slug>/roles/reviewer.md
+- id: evaluator-closer
+  provider_key: FACTORY_V3_EVALUATOR_CLOSER_PROVIDER
+  host_tag: []
+  deps:
+  - reviewer
+  reads:
+  - docs/plans/<slug>-plan.md
+  - review artifact
+  - test output
+  writes:
+  - docs/evaluations/<slug>-evaluation.md
+gates:
+  gate_b: true
+  gate_r: true

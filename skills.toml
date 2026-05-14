@@ -1,0 +1,54 @@
+[globals]
+target_dirs = ["~/.claude/skills", "~/.codex/skills"]
+install_command = "python scripts/install_global.py --confirm-global-skill-install"
+validate_command = "python scripts/validate.py"
+
+[skills.factory-intake]
+path = "skills/factory-intake/SKILL.md"
+repos = ["ao-operator", "claude-agent-teams-v2", "codex-agent-teams-v2"]
+purpose = "Shape-aware factory intake with Spec Forge, Gate B/Gate R, slices, and verification."
+
+[skills.plan-hardener]
+path = "skills/plan-hardener/SKILL.md"
+repos = ["ao-operator", "claude-agent-teams-v2", "codex-agent-teams-v2"]
+purpose = "Shape-specific plan linting, bounded hardening, and dispatch-ready verification oracles."
+
+[skills.context-offload]
+path = "skills/context-offload/SKILL.md"
+repos = ["ao-operator", "claude-agent-teams-v2", "codex-agent-teams-v2", "spec-forge-v2"]
+purpose = "High-volume research, subagent offload, model-tier routing, and session handoff discipline."
+
+[skills.closure-verification]
+path = "skills/closure-verification/SKILL.md"
+repos = ["ao-operator", "claude-agent-teams-v2", "codex-agent-teams-v2", "spec-forge-v2"]
+purpose = "Evidence-first closure with deterministic tests, conformance checks, and residual-risk reporting."
+
+[skills.mission-monitor-ops]
+path = "skills/mission-monitor-ops/SKILL.md"
+repos = ["ao-operator", "claude-agent-teams-v2", "codex-agent-teams-v2"]
+purpose = "Mission-monitor startup, endpoint checks, artifact visibility, and dashboard verification."
+
+[skills.spec-forge-contracting]
+path = "skills/spec-forge-contracting/SKILL.md"
+repos = ["ao-operator", "spec-forge-v2", "claude-agent-teams-v2", "codex-agent-teams-v2"]
+purpose = "Spec Forge contract authoring, linting, emission, and post-build conformance."
+
+[skills.spec-kit-aliases]
+path = "skills/spec-kit-aliases/SKILL.md"
+repos = ["ao-operator"]
+purpose = "Spec-Kit-style command vocabulary mapped onto Plain Factory's native factory_run.py workflow."
+
+[skills.llm-wiki-lookup]
+path = "skills/llm-wiki-lookup/SKILL.md"
+repos = ["ao-operator", "spec-forge-v2", "claude-agent-teams-v2", "codex-agent-teams-v2"]
+purpose = "Manual read-only lookup against an external llm-wiki checkout when explicitly requested."
+
+[skills.citation-audit]
+path = "skills/citation-audit/SKILL.md"
+repos = ["ao-operator"]
+purpose = "Financial-services citation enforcement for source-backed numeric and quoted claims."
+
+[skills.compliance-redact]
+path = "skills/compliance-redact/SKILL.md"
+repos = ["ao-operator"]
+purpose = "Financial-services Reg FD, MNPI, PII, and unsupported-compliance-language scrub."

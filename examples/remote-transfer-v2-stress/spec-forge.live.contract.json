@@ -1,0 +1,739 @@
+{
+  "schema": "spec-forge/v2",
+  "slug": "remote-transfer-v2-stress-live",
+  "title": "Remote Transfer v2 bounded live stress test",
+  "shape": "greenfield",
+  "classification": "COMPLEX",
+  "problem": "AO Operator needs a conductable stress lane that exercises Remote Transfer v2 planning without exhausting live provider limits or exposing network endpoints.",
+  "objective": "Materialize a 107-task AO Operator topology with 50 Remote Transfer v2 implementation factories, 50 reviewers, and durable SDD-style closure artifacts.",
+  "success_criteria": [
+    "AO Operator materializes a 107-task RunSpec and exact prompt set.",
+    "The contract declares 50 disjoint implementation slices.",
+    "The generated RunSpec contains every bounded live factory and reviewer task.",
+    "The prompt directory exactly matches the bounded topology task IDs.",
+    "AO events capture a real run id, command exit, completion state, and provider failure evidence when failures occur.",
+    "The topology validator accepts topology sizes above the original 17-task demo.",
+    "The bounded live profile is small enough to run before escalating provider concurrency."
+  ],
+  "constraints": [
+    "Use OAuth CLI providers only.",
+    "Keep live provider fan-out bounded to a small first-wave profile.",
+    "Use the maximum 1000-slice topology only for dry-run materialization.",
+    "Keep branch context bounded to scoped reads, writes, and durable artifacts.",
+    "Fan out only after Spec Forge and Ralph Loop gates pass.",
+    "Require validate_factory.py and validate_intake.py PASS before live provider dispatch."
+  ],
+  "sensitive_fields": [
+    "provider OAuth credentials",
+    "provider CLI session files",
+    "enrollment tokens",
+    "worker endpoint URLs",
+    "local machine labels",
+    "full provider transcripts"
+  ],
+  "trigger_hints": [
+    "security",
+    "build",
+    "docs",
+    "provider-runtime",
+    "performance"
+  ],
+  "negative_constraints": [
+    "MUST NOT configure OPENAI_API_KEY or ANTHROPIC_API_KEY",
+    "MUST NOT read provider auth files or provider CLI session files",
+    "MUST NOT transfer provider auth files between machines",
+    "MUST NOT emit raw environment dumps",
+    "MUST NOT bind anonymous write-capable endpoints",
+    "MUST NOT run the 1000-slice dry-run topology as a live provider workload",
+    "MUST NOT exceed the bounded live slice count without an explicit operator approval",
+    "MUST NOT pass full transcripts between branches",
+    "MUST NOT accept closure when any branch returns BLOCKED or REJECTED"
+  ],
+  "shalls": [
+    {
+      "id": "SHALL-001",
+      "text": "The stress topology SHALL contain planner-intake, Spec Forge, Ralph Loop, plan-hardener, factory-manager, 50 implementation factories, 50 reviewers, integrator, and evaluator-closer."
+    },
+    {
+      "id": "SHALL-002",
+      "text": "Every implementation factory SHALL declare disjoint read and write ownership."
+    },
+    {
+      "id": "SHALL-003",
+      "text": "Every reviewer SHALL depend only on its paired implementation factory."
+    },
+    {
+      "id": "SHALL-004",
+      "text": "The integrator SHALL fan in all 50 reviewer artifacts."
+    },
+    {
+      "id": "SHALL-005",
+      "text": "The bounded live run SHALL use OAuth CLI providers only and SHALL NOT require provider API keys."
+    },
+    {
+      "id": "SHALL-006",
+      "text": "Every role artifact SHALL return Result, Artifact, Evidence, Concerns, and Blocker."
+    },
+    {
+      "id": "SHALL-007",
+      "text": "The prompt directory SHALL exactly match the bounded topology task IDs before live provider dispatch."
+    },
+    {
+      "id": "SHALL-008",
+      "text": "AO event capture SHALL include a real run id, command exit, completion state, and provider failure evidence when provider failures occur."
+    },
+    {
+      "id": "SHALL-009",
+      "text": "Live provider dispatch SHALL be blocked unless validate_factory.py and validate_intake.py both return PASS."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "description": "The stress topology contains exactly 107 tasks.",
+      "oracle": "RunSpec and topology validation report every task present.",
+      "verification": "python3 scripts/validate_factory.py --slug remote-transfer-v2-stress-live --topology examples/remote-transfer-v2-stress/ao-live-stress-topology.yaml --contract examples/remote-transfer-v2-stress/spec-forge.live.contract.json --json"
+    },
+    {
+      "id": "AC-002",
+      "description": "The contract carries all 50 Remote Transfer v2 slices.",
+      "oracle": "Intake validation passes with reads, writes, verification, sensitive fields, trigger hints, and negative constraints.",
+      "verification": "python3 scripts/validate_intake.py examples/remote-transfer-v2-stress/spec-forge.live.contract.json --json"
+    },
+    {
+      "id": "AC-003",
+      "description": "The profile materializes prompts and RunSpec before live provider dispatch.",
+      "oracle": "Factory render command uses the bounded topology and generated status/evaluation names the bounded slug without launching AO.",
+      "verification": "python3 scripts/factory_run.py --brief examples/remote-transfer-v2-stress/task-brief-live.md --slug remote-transfer-v2-stress-live --provider-env examples/remote-transfer-v2-stress/provider.env --topology examples/remote-transfer-v2-stress/ao-live-stress-topology.yaml --contract examples/remote-transfer-v2-stress/spec-forge.live.contract.json --render-only --overwrite-artifacts --scrub-root-context"
+    },
+    {
+      "id": "AC-004",
+      "description": "The live prompt directory exactly matches the bounded topology task IDs.",
+      "oracle": "Validation reports no missing or extra prompt files for the bounded topology.",
+      "verification": "python3 scripts/validate_factory.py --slug remote-transfer-v2-stress-live --topology examples/remote-transfer-v2-stress/ao-live-stress-topology.yaml --contract examples/remote-transfer-v2-stress/spec-forge.live.contract.json --json"
+    },
+    {
+      "id": "AC-005",
+      "description": "AO events capture live execution closure evidence.",
+      "oracle": "Post-run evidence contains a real AO run id, command exit status, completion state, and provider failure evidence when failures occur.",
+      "verification": "python3 scripts/factory_run.py --brief examples/remote-transfer-v2-stress/task-brief-live.md --slug remote-transfer-v2-stress-live --provider-env examples/remote-transfer-v2-stress/provider.env --topology examples/remote-transfer-v2-stress/ao-live-stress-topology.yaml --contract examples/remote-transfer-v2-stress/spec-forge.live.contract.json --run --overwrite-artifacts --scrub-root-context && python3 scripts/validate_factory.py --slug remote-transfer-v2-stress-live --topology examples/remote-transfer-v2-stress/ao-live-stress-topology.yaml --contract examples/remote-transfer-v2-stress/spec-forge.live.contract.json --json"
+    }
+  ],
+  "slices": [
+    {
+      "id": "identity-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-sdd-roadmap.md",
+        "crates/ao-node/src/registry.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/identity.md"
+      ],
+      "verification": [
+        "identity status projection acceptance documented"
+      ]
+    },
+    {
+      "id": "heartbeat-factory",
+      "reads": [
+        "crates/ao-node/src/registry.rs",
+        "crates/ao-node/src/coordinator.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/heartbeat.md"
+      ],
+      "verification": [
+        "ready busy offline heartbeat states documented"
+      ]
+    },
+    {
+      "id": "stale-timeout-factory",
+      "reads": [
+        "crates/ao-node/src/registry.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/stale-timeout.md"
+      ],
+      "verification": [
+        "timeout behavior keeps task state durable"
+      ]
+    },
+    {
+      "id": "enrollment-factory",
+      "reads": [
+        "crates/ao-node/src/enrollment.rs",
+        "crates/ao-node/tests/distributed_worker_grpc_codes.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/enrollment.md"
+      ],
+      "verification": [
+        "enrollment failure modes remain typed"
+      ]
+    },
+    {
+      "id": "grpc-errors-factory",
+      "reads": [
+        "proto/ao/v1/runtime.proto",
+        "crates/ao-node/tests/distributed_worker_grpc_codes.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/grpc-errors.md"
+      ],
+      "verification": [
+        "connection errors are structured"
+      ]
+    },
+    {
+      "id": "bundle-small-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md",
+        "crates/ao-node/tests/remote_workspace.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/bundle-small.md"
+      ],
+      "verification": [
+        "small bundles keep existing single-message path"
+      ]
+    },
+    {
+      "id": "bundle-chunk-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md",
+        "crates/ao-workspace/src/bundle.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/bundle-chunk.md"
+      ],
+      "verification": [
+        "large bundles use begin chunk commit semantics"
+      ]
+    },
+    {
+      "id": "chunk-retry-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/chunk-retry.md"
+      ],
+      "verification": [
+        "retry resends only failed chunk index"
+      ]
+    },
+    {
+      "id": "staging-cleanup-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md",
+        "docs/remote-worker-tar-bomb-defense.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/staging-cleanup.md"
+      ],
+      "verification": [
+        "failed uploads clean partial staging files"
+      ]
+    },
+    {
+      "id": "manifest-canonical-factory",
+      "reads": [
+        "docs/remote-worker-manifest-verify-spec.md",
+        "crates/ao-workspace/src/bundle.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/manifest-canonical.md"
+      ],
+      "verification": [
+        "canonical manifest fields are named"
+      ]
+    },
+    {
+      "id": "manifest-signing-factory",
+      "reads": [
+        "docs/remote-worker-manifest-verify-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/manifest-signing.md"
+      ],
+      "verification": [
+        "missing and invalid signatures reject before metadata trust"
+      ]
+    },
+    {
+      "id": "key-rotation-factory",
+      "reads": [
+        "docs/remote-worker-manifest-verify-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/key-rotation.md"
+      ],
+      "verification": [
+        "key rotation grace period documented"
+      ]
+    },
+    {
+      "id": "deterministic-smoke-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-execution-plan.md",
+        "crates/ao-node/tests/remote_workspace.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/deterministic-smoke.md"
+      ],
+      "verification": [
+        "provider-free marker smoke documented"
+      ]
+    },
+    {
+      "id": "artifact-return-factory",
+      "reads": [
+        "crates/ao-node/tests/distributed_worker_artifact_payload.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/artifact-return.md"
+      ],
+      "verification": [
+        "artifact name size sha256 content return metadata documented"
+      ]
+    },
+    {
+      "id": "temp-cleanup-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md",
+        "crates/ao-workspace/tests/workspace.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/temp-cleanup.md"
+      ],
+      "verification": [
+        "temp workspace cleanup behavior documented"
+      ]
+    },
+    {
+      "id": "codex-preflight-factory",
+      "reads": [
+        "docs/remote-worker-codex-smoke-spec.md",
+        "docs/ao-operator-remote-transfer-v2-mac-ubuntu-plan.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/codex-preflight.md"
+      ],
+      "verification": [
+        "Ubuntu local Codex auth preflight documented with workspace-provider-auth-material failure reason named"
+      ]
+    },
+    {
+      "id": "codex-smoke-factory",
+      "reads": [
+        "docs/remote-worker-codex-smoke-spec.md",
+        "scripts/remote_codex_smoke_preflight.sh",
+        "prompts/remote-codex-smoke.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/codex-smoke.md"
+      ],
+      "verification": [
+        "remote Codex smoke declared single write"
+      ]
+    },
+    {
+      "id": "observability-events-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-sdd-roadmap.md",
+        "crates/ao-daemon/tests/event_store_engine_integration.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/observability-events.md"
+      ],
+      "verification": [
+        "task started artifact completed failed run terminal events and normalized reason documented without claiming provider progress persistence coverage"
+      ]
+    },
+    {
+      "id": "operator-runbook-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-task-board.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/operator-runbook.md"
+      ],
+      "verification": [
+        "operator loop and stop rules documented"
+      ]
+    },
+    {
+      "id": "failure-recovery-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-execution-plan.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/failure-recovery.md"
+      ],
+      "verification": [
+        "failure recovery handling documented"
+      ]
+    },
+    {
+      "id": "worker-discovery-factory",
+      "reads": [
+        "crates/ao-node/src/registry.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/worker-discovery.md"
+      ],
+      "verification": [
+        "worker discovery states and TTL boundaries documented"
+      ]
+    },
+    {
+      "id": "capability-advertisement-factory",
+      "reads": [
+        "proto/ao/v1/runtime.proto"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/capability-advertisement.md"
+      ],
+      "verification": [
+        "capability advertisements remain typed and versioned"
+      ]
+    },
+    {
+      "id": "queue-lease-factory",
+      "reads": [
+        "crates/ao-policy/src/queue.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/queue-lease.md"
+      ],
+      "verification": [
+        "remote queue lease ownership acquire observe resolve double resolution and current no lease expiry behavior documented"
+      ]
+    },
+    {
+      "id": "task-claim-factory",
+      "reads": [
+        "crates/ao-node/src/coordinator.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/task-claim.md"
+      ],
+      "verification": [
+        "remote task claim behavior documented"
+      ]
+    },
+    {
+      "id": "task-cancel-factory",
+      "reads": [
+        "crates/ao-node/src/coordinator.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/task-cancel.md"
+      ],
+      "verification": [
+        "remote task cancellation state transitions documented"
+      ]
+    },
+    {
+      "id": "backpressure-factory",
+      "reads": [
+        "crates/ao-node/src/registry.rs",
+        "crates/ao-scheduler/src/lib.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/backpressure.md"
+      ],
+      "verification": [
+        "backpressure states prevent overload"
+      ]
+    },
+    {
+      "id": "bundle-compression-factory",
+      "reads": [
+        "crates/ao-workspace/src/bundle.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/bundle-compression.md"
+      ],
+      "verification": [
+        "compression settings preserve deterministic hashes"
+      ]
+    },
+    {
+      "id": "bundle-delta-factory",
+      "reads": [
+        "crates/ao-workspace/src/bundle.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/bundle-delta.md"
+      ],
+      "verification": [
+        "delta bundle selection baseline mismatch apply retry and security behavior documented"
+      ]
+    },
+    {
+      "id": "chunk-integrity-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/chunk-integrity.md"
+      ],
+      "verification": [
+        "chunk hash validation rejects corrupt uploads"
+      ]
+    },
+    {
+      "id": "resumable-upload-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/resumable-upload.md"
+      ],
+      "verification": [
+        "resumable upload checkpoints documented"
+      ]
+    },
+    {
+      "id": "staging-quota-factory",
+      "reads": [
+        "docs/remote-worker-workspace-transfer-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/staging-quota.md"
+      ],
+      "verification": [
+        "staging quota exhaustion behavior documented"
+      ]
+    },
+    {
+      "id": "manifest-schema-factory",
+      "reads": [
+        "docs/remote-worker-manifest-verify-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/manifest-schema.md"
+      ],
+      "verification": [
+        "manifest fields signing payload verification order compatibility and failure codes documented"
+      ]
+    },
+    {
+      "id": "manifest-compat-factory",
+      "reads": [
+        "docs/remote-worker-manifest-verify-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/manifest-compat.md"
+      ],
+      "verification": [
+        "manifest compatibility fallback documented with verifier key compatibility signature rejection auth exclusion and preserved hash or missing file failures"
+      ]
+    },
+    {
+      "id": "signer-policy-factory",
+      "reads": [
+        "docs/remote-worker-manifest-verify-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/signer-policy.md"
+      ],
+      "verification": [
+        "signer policy allowlist behavior documented"
+      ]
+    },
+    {
+      "id": "trust-store-factory",
+      "reads": [
+        "docs/remote-worker-manifest-verify-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/trust-store.md"
+      ],
+      "verification": [
+        "trust store lookup and missing-key failure documented"
+      ]
+    },
+    {
+      "id": "audit-log-factory",
+      "reads": [
+        "crates/ao-daemon/tests/event_store_engine_integration.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/audit-log.md"
+      ],
+      "verification": [
+        "audit log event coverage documented"
+      ]
+    },
+    {
+      "id": "artifact-download-factory",
+      "reads": [
+        "crates/ao-node/tests/distributed_worker_artifact_payload.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/artifact-download.md"
+      ],
+      "verification": [
+        "artifact download metadata and ordering documented"
+      ]
+    },
+    {
+      "id": "artifact-dedup-factory",
+      "reads": [
+        "crates/ao-node/tests/distributed_worker_artifact_payload.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/artifact-dedup.md"
+      ],
+      "verification": [
+        "artifact deduplication by digest documented"
+      ]
+    },
+    {
+      "id": "result-metadata-factory",
+      "reads": [
+        "crates/ao-node/tests/distributed_worker_artifact_payload.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/result-metadata.md"
+      ],
+      "verification": [
+        "result metadata schema documented"
+      ]
+    },
+    {
+      "id": "cleanup-sweeper-factory",
+      "reads": [
+        "crates/ao-workspace/tests/workspace.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/cleanup-sweeper.md"
+      ],
+      "verification": [
+        "cleanup sweeper failure handling documented"
+      ]
+    },
+    {
+      "id": "codex-env-probe-factory",
+      "reads": [
+        "docs/remote-worker-codex-smoke-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/codex-env-probe.md"
+      ],
+      "verification": [
+        "Codex environment probe remains local to Ubuntu"
+      ]
+    },
+    {
+      "id": "codex-token-redaction-factory",
+      "reads": [
+        "docs/remote-worker-codex-smoke-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/codex-token-redaction.md"
+      ],
+      "verification": [
+        "Codex transcript redaction policy documented"
+      ]
+    },
+    {
+      "id": "codex-timeout-factory",
+      "reads": [
+        "docs/remote-worker-codex-smoke-spec.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/codex-timeout.md"
+      ],
+      "verification": [
+        "Codex provider timeout terminal state run id and API key boundary documented with no retry smoke-output or event-closure claim"
+      ]
+    },
+    {
+      "id": "event-heartbeat-factory",
+      "reads": [
+        "crates/ao-daemon/tests/event_store_engine_integration.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/event-heartbeat.md"
+      ],
+      "verification": [
+        "heartbeat event cadence documented"
+      ]
+    },
+    {
+      "id": "event-replay-factory",
+      "reads": [
+        "crates/ao-daemon/tests/event_store_engine_integration.rs"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/event-replay.md"
+      ],
+      "verification": [
+        "event replay idempotency documented"
+      ]
+    },
+    {
+      "id": "operator-dashboard-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-task-board.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/operator-dashboard.md"
+      ],
+      "verification": [
+        "operator dashboard source signals documented"
+      ]
+    },
+    {
+      "id": "recovery-resume-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-execution-plan.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/recovery-resume.md"
+      ],
+      "verification": [
+        "resume recovery path documented"
+      ]
+    },
+    {
+      "id": "recovery-rollback-factory",
+      "reads": [
+        "docs/ao-operator-remote-transfer-v2-execution-plan.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/recovery-rollback.md"
+      ],
+      "verification": [
+        "rollback recovery path documented"
+      ]
+    },
+    {
+      "id": "security-tar-sanitize-factory",
+      "reads": [
+        "docs/remote-worker-tar-bomb-defense.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/security-tar-sanitize.md"
+      ],
+      "verification": [
+        "tar sanitization checks documented"
+      ]
+    },
+    {
+      "id": "security-path-normalize-factory",
+      "reads": [
+        "docs/remote-worker-tar-bomb-defense.md"
+      ],
+      "writes": [
+        "docs/remote-transfer-v2/security-path-normalize.md"
+      ],
+      "verification": [
+        "path normalization policy documented"
+      ]
+    }
+  ]
+}

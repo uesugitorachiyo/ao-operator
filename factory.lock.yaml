@@ -1,0 +1,37 @@
+{
+  "ao_runtime": {
+    "git_head": "b7b87a97",
+    "path": "../ao-runtime",
+    "workspace_packages": {
+      "ao-a2a": "0.0.0",
+      "ao-artifacts": "0.0.0",
+      "ao-cli": "0.0.0",
+      "ao-core": "0.0.0",
+      "ao-daemon": "0.0.0",
+      "ao-grpc": "0.0.0",
+      "ao-node": "0.0.0",
+      "ao-otel": "0.0.0",
+      "ao-policy": "0.0.0",
+      "ao-scheduler": "0.0.0",
+      "ao-tui": "0.0.0",
+      "ao-workspace": "0.0.0",
+      "openclaw-transport": "0.0.0"
+    }
+  },
+  "providers": {
+    "claude": "2.1.138 (Claude Code)",
+    "codex": "codex-cli 0.130.0"
+  },
+  "schema": "ao-operator/lock/v1",
+  "skills": {
+    "skills/closure-verification/SKILL.md": "07bf93e7a612593a2f9adbad3ede2d06d57a90ce8f5c84cf368f630b6ef64887",
+    "skills/citation-audit/SKILL.md": "a6265e62925fed8e6b1b542c31facc70c5e64ae76906c28b6dd9dda41d69bc35",
+    "skills/compliance-redact/SKILL.md": "f8b82b4c364975d7c0c066f35f30e8f7c3962178d17b3ac860f2beed53a9fd4b",
+    "skills/context-offload/SKILL.md": "e4fb2f0dd5e4cccbb2d0e1ea04abb8dbe6abf800450baaeb062115c49ed52a64",
+    "skills/factory-intake/SKILL.md": "1c3780d00af4cd63fa7aa765d16c9fce29f155c3096a0e4581439f30e2c8d1a0",
+    "skills/llm-wiki-lookup/SKILL.md": "dae9b0910e33ced0ccc3592a4a6216d38df88889cffefa6d7ee7cb792c9a74ae",
+    "skills/mission-monitor-ops/SKILL.md": "590d76a0e6f9b23dca2fb1b319e4dd751afd869b665bf602f2cbd4c42a4dbe95",
+    "skills/plan-hardener/SKILL.md": "7bbb35053fbed54c9c788554ca8870e5deec5499f41aabc286e749fc2ef1add1",
+    "skills/spec-forge-contracting/SKILL.md": "023e06768e826cbf519e163050905a4d93c0aeb11f7414e19ce28a520e0064a2"
+  }
+}

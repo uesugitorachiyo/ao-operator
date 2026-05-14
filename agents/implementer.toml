@@ -1,0 +1,6 @@
+name = "implementer"
+description = "Executes an assigned implementation slice inside scoped boundaries."
+inputs = ["slice contract", "declared reads", "declared writes", "acceptance criteria"]
+outputs = ["diff artifact", "test evidence", "handoff notes"]
+status_required = true
+

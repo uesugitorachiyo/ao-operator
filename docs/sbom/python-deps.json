@@ -1,0 +1,78 @@
+{
+  "sbom_version": "1.0",
+  "project": "ao-runtime-operator",
+  "internal_slug": "ao-operator",
+  "language": "python",
+  "runtime_dependencies": [],
+  "runtime_dependencies_note": "Default production code in scripts/ is stdlib-only. Optional production features use lazy dependencies listed separately.",
+  "optional_production_dependencies": [
+    {
+      "name": "cryptography",
+      "kind": "python-package",
+      "required": false,
+      "used_for": "Ed25519 evidence-pack signing and verification",
+      "activation": "--ed25519-private-key or --evidence-ed25519-private-key",
+      "supply_chain_note": "Lazy import only; not required for default HMAC/dev evidence packs."
+    },
+    {
+      "name": "zstd CLI",
+      "kind": "system-binary",
+      "required": false,
+      "used_for": "Production evidence-pack .tar.zst archive compression and replay",
+      "activation": "--tar-zst or live-run evidence-pack archive generation",
+      "supply_chain_note": "Resolved with shutil.which('zstd'); not vendored or imported as a Python package."
+    }
+  ],
+  "dev_dependencies": [
+    {
+      "name": "pytest",
+      "version": "9.0.3",
+      "license": "MIT",
+      "classifier": "",
+      "summary": "pytest: simple powerful testing with Python",
+      "kind": "direct"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "license": "MIT",
+      "classifier": "MIT License",
+      "summary": "YAML parser and emitter for Python",
+      "kind": "direct"
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "license": "MIT",
+      "classifier": "",
+      "summary": "brain-dead simple config-ini parsing",
+      "kind": "transitive"
+    },
+    {
+      "name": "packaging",
+      "version": "26.2",
+      "license": "Apache-2.0 OR BSD-2-Clause",
+      "classifier": "",
+      "summary": "Core utilities for Python packages",
+      "kind": "transitive"
+    },
+    {
+      "name": "pluggy",
+      "version": "1.6.0",
+      "license": "MIT",
+      "classifier": "MIT License",
+      "summary": "plugin and hook calling mechanisms for python",
+      "kind": "transitive"
+    },
+    {
+      "name": "Pygments",
+      "version": "2.20.0",
+      "license": "BSD-2-Clause",
+      "classifier": "",
+      "summary": "Pygments is a syntax highlighting package written in Python.",
+      "kind": "transitive"
+    }
+  ],
+  "generated_at": "2026-05-11T23:03:18.800012+00:00",
+  "generator": "importlib.metadata (stdlib)"
+}

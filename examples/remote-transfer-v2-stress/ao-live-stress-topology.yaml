@@ -1,0 +1,1082 @@
+apiVersion: ao.dev/v1
+kind: Run
+metadata:
+  name: remote-transfer-v2-stress-live
+  description: >
+    AO Operator Remote Transfer v2 bounded live topology. Materializes 107 tasks:
+    five control-gate tasks, 50 implementation factories, 50 reviewers,
+    integrator, and evaluator-closer.
+spec:
+  tasks:
+    - id: planner-intake
+      kind: agent
+      deps: []
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/planner-intake.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: spec-forge-contract
+      kind: agent
+      deps: ["planner-intake"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/spec-forge-contract.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        contractFile: examples/remote-transfer-v2-stress/spec-forge.live.contract.json
+
+    - id: ralph-loop
+      kind: agent
+      deps: ["spec-forge-contract"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/ralph-loop.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        gate: greenfield-readiness
+
+    - id: plan-hardener
+      kind: agent
+      deps: ["ralph-loop"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/plan-hardener.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: factory-manager
+      kind: agent
+      deps: ["plan-hardener"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/factory-manager.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+        dispatchMode: fan-out
+
+    - id: identity-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/identity-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: heartbeat-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/heartbeat-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: stale-timeout-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/stale-timeout-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: enrollment-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/enrollment-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: grpc-errors-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/grpc-errors-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-small-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-small-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-chunk-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-chunk-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: chunk-retry-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/chunk-retry-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: staging-cleanup-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/staging-cleanup-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-canonical-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-canonical-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-signing-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-signing-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: key-rotation-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/key-rotation-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: deterministic-smoke-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/deterministic-smoke-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: artifact-return-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/artifact-return-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: temp-cleanup-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/temp-cleanup-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-preflight-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-preflight-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-smoke-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-smoke-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: observability-events-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/observability-events-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: operator-runbook-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/operator-runbook-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: failure-recovery-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/failure-recovery-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: worker-discovery-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/worker-discovery-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: capability-advertisement-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/capability-advertisement-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: queue-lease-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/queue-lease-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: task-claim-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/task-claim-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: task-cancel-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/task-cancel-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: backpressure-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/backpressure-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-compression-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-compression-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-delta-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-delta-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: chunk-integrity-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/chunk-integrity-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: resumable-upload-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/resumable-upload-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: staging-quota-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/staging-quota-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-schema-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-schema-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-compat-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-compat-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: signer-policy-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/signer-policy-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: trust-store-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/trust-store-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: audit-log-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/audit-log-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: artifact-download-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/artifact-download-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: artifact-dedup-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/artifact-dedup-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: result-metadata-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/result-metadata-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: cleanup-sweeper-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/cleanup-sweeper-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-env-probe-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-env-probe-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-token-redaction-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-token-redaction-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-timeout-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-timeout-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: event-heartbeat-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/event-heartbeat-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: event-replay-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/event-replay-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: operator-dashboard-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/operator-dashboard-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: recovery-resume-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/recovery-resume-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: recovery-rollback-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/recovery-rollback-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: security-tar-sanitize-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/security-tar-sanitize-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: security-path-normalize-factory
+      kind: agent
+      deps: ["factory-manager"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/security-path-normalize-factory.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: identity-reviewer
+      kind: agent
+      deps: ["identity-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/identity-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: heartbeat-reviewer
+      kind: agent
+      deps: ["heartbeat-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/heartbeat-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: stale-timeout-reviewer
+      kind: agent
+      deps: ["stale-timeout-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/stale-timeout-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: enrollment-reviewer
+      kind: agent
+      deps: ["enrollment-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/enrollment-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: grpc-errors-reviewer
+      kind: agent
+      deps: ["grpc-errors-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/grpc-errors-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-small-reviewer
+      kind: agent
+      deps: ["bundle-small-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-small-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-chunk-reviewer
+      kind: agent
+      deps: ["bundle-chunk-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-chunk-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: chunk-retry-reviewer
+      kind: agent
+      deps: ["chunk-retry-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/chunk-retry-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: staging-cleanup-reviewer
+      kind: agent
+      deps: ["staging-cleanup-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/staging-cleanup-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-canonical-reviewer
+      kind: agent
+      deps: ["manifest-canonical-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-canonical-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-signing-reviewer
+      kind: agent
+      deps: ["manifest-signing-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-signing-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: key-rotation-reviewer
+      kind: agent
+      deps: ["key-rotation-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/key-rotation-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: deterministic-smoke-reviewer
+      kind: agent
+      deps: ["deterministic-smoke-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/deterministic-smoke-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: artifact-return-reviewer
+      kind: agent
+      deps: ["artifact-return-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/artifact-return-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: temp-cleanup-reviewer
+      kind: agent
+      deps: ["temp-cleanup-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/temp-cleanup-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-preflight-reviewer
+      kind: agent
+      deps: ["codex-preflight-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-preflight-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-smoke-reviewer
+      kind: agent
+      deps: ["codex-smoke-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-smoke-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: observability-events-reviewer
+      kind: agent
+      deps: ["observability-events-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/observability-events-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: operator-runbook-reviewer
+      kind: agent
+      deps: ["operator-runbook-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/operator-runbook-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: failure-recovery-reviewer
+      kind: agent
+      deps: ["failure-recovery-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/failure-recovery-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: worker-discovery-reviewer
+      kind: agent
+      deps: ["worker-discovery-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/worker-discovery-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: capability-advertisement-reviewer
+      kind: agent
+      deps: ["capability-advertisement-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/capability-advertisement-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: queue-lease-reviewer
+      kind: agent
+      deps: ["queue-lease-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/queue-lease-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: task-claim-reviewer
+      kind: agent
+      deps: ["task-claim-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/task-claim-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: task-cancel-reviewer
+      kind: agent
+      deps: ["task-cancel-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/task-cancel-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: backpressure-reviewer
+      kind: agent
+      deps: ["backpressure-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/backpressure-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-compression-reviewer
+      kind: agent
+      deps: ["bundle-compression-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-compression-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: bundle-delta-reviewer
+      kind: agent
+      deps: ["bundle-delta-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/bundle-delta-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: chunk-integrity-reviewer
+      kind: agent
+      deps: ["chunk-integrity-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/chunk-integrity-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: resumable-upload-reviewer
+      kind: agent
+      deps: ["resumable-upload-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/resumable-upload-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: staging-quota-reviewer
+      kind: agent
+      deps: ["staging-quota-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/staging-quota-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-schema-reviewer
+      kind: agent
+      deps: ["manifest-schema-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-schema-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: manifest-compat-reviewer
+      kind: agent
+      deps: ["manifest-compat-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/manifest-compat-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: signer-policy-reviewer
+      kind: agent
+      deps: ["signer-policy-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/signer-policy-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: trust-store-reviewer
+      kind: agent
+      deps: ["trust-store-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/trust-store-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: audit-log-reviewer
+      kind: agent
+      deps: ["audit-log-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/audit-log-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: artifact-download-reviewer
+      kind: agent
+      deps: ["artifact-download-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/artifact-download-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: artifact-dedup-reviewer
+      kind: agent
+      deps: ["artifact-dedup-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/artifact-dedup-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: result-metadata-reviewer
+      kind: agent
+      deps: ["result-metadata-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/result-metadata-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: cleanup-sweeper-reviewer
+      kind: agent
+      deps: ["cleanup-sweeper-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/cleanup-sweeper-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-env-probe-reviewer
+      kind: agent
+      deps: ["codex-env-probe-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-env-probe-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-token-redaction-reviewer
+      kind: agent
+      deps: ["codex-token-redaction-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-token-redaction-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: codex-timeout-reviewer
+      kind: agent
+      deps: ["codex-timeout-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/codex-timeout-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: event-heartbeat-reviewer
+      kind: agent
+      deps: ["event-heartbeat-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/event-heartbeat-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: event-replay-reviewer
+      kind: agent
+      deps: ["event-replay-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/event-replay-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: operator-dashboard-reviewer
+      kind: agent
+      deps: ["operator-dashboard-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/operator-dashboard-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: recovery-resume-reviewer
+      kind: agent
+      deps: ["recovery-resume-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/recovery-resume-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: recovery-rollback-reviewer
+      kind: agent
+      deps: ["recovery-rollback-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/recovery-rollback-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: security-tar-sanitize-reviewer
+      kind: agent
+      deps: ["security-tar-sanitize-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/security-tar-sanitize-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: security-path-normalize-reviewer
+      kind: agent
+      deps: ["security-path-normalize-factory"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/security-path-normalize-reviewer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: integrator
+      kind: agent
+      deps: ["identity-reviewer", "heartbeat-reviewer", "stale-timeout-reviewer", "enrollment-reviewer", "grpc-errors-reviewer", "bundle-small-reviewer", "bundle-chunk-reviewer", "chunk-retry-reviewer", "staging-cleanup-reviewer", "manifest-canonical-reviewer", "manifest-signing-reviewer", "key-rotation-reviewer", "deterministic-smoke-reviewer", "artifact-return-reviewer", "temp-cleanup-reviewer", "codex-preflight-reviewer", "codex-smoke-reviewer", "observability-events-reviewer", "operator-runbook-reviewer", "failure-recovery-reviewer", "worker-discovery-reviewer", "capability-advertisement-reviewer", "queue-lease-reviewer", "task-claim-reviewer", "task-cancel-reviewer", "backpressure-reviewer", "bundle-compression-reviewer", "bundle-delta-reviewer", "chunk-integrity-reviewer", "resumable-upload-reviewer", "staging-quota-reviewer", "manifest-schema-reviewer", "manifest-compat-reviewer", "signer-policy-reviewer", "trust-store-reviewer", "audit-log-reviewer", "artifact-download-reviewer", "artifact-dedup-reviewer", "result-metadata-reviewer", "cleanup-sweeper-reviewer", "codex-env-probe-reviewer", "codex-token-redaction-reviewer", "codex-timeout-reviewer", "event-heartbeat-reviewer", "event-replay-reviewer", "operator-dashboard-reviewer", "recovery-resume-reviewer", "recovery-rollback-reviewer", "security-tar-sanitize-reviewer", "security-path-normalize-reviewer"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/integrator.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml
+
+    - id: evaluator-closer
+      kind: agent
+      deps: ["integrator"]
+      spec:
+        provider: codex
+        agent: codex-default
+        promptFile: run-artifacts/remote-transfer-v2-stress-live/prompts/evaluator-closer.md
+        workspace: .
+        policyProfile: ao/policy/local-dev.yaml

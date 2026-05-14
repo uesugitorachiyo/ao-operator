@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">AO Operator native cross-platform coworking</title>
+  <desc id="desc">Ubuntu coordinates local AO Operator work while macOS and native Windows workers run provider-authenticated roles and return evidence.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0f1722"/>
+      <stop offset="1" stop-color="#172b38"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#7dd3fc"/>
+    </marker>
+    <style>
+      .h{font:700 38px system-ui,-apple-system,Segoe UI,sans-serif;fill:#f8fbff}
+      .p{font:500 19px system-ui,-apple-system,Segoe UI,sans-serif;fill:#bfd3e0}
+      .box{fill:#fff;stroke:#d7e2ec;stroke-width:2}
+      .main{fill:#eaf6ff;stroke:#7dd3fc;stroke-width:2}
+      .mac{fill:#f4f0ff;stroke:#a78bfa;stroke-width:2}
+      .win{fill:#effbea;stroke:#91dd86;stroke-width:2}
+      .t{font:700 21px system-ui,-apple-system,Segoe UI,sans-serif;fill:#17212b}
+      .s{font:500 15px system-ui,-apple-system,Segoe UI,sans-serif;fill:#536577}
+      .line{stroke:#7dd3fc;stroke-width:4;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1200" height="520" fill="url(#bg)"/>
+  <text x="54" y="72" class="h">Native Cross-Platform Coworking</text>
+  <text x="54" y="108" class="p">One AO Operator run can coordinate Ubuntu, macOS, and Windows without WSL.</text>
+
+  <rect x="470" y="145" width="260" height="165" rx="14" class="main"/>
+  <text x="516" y="198" class="t">Ubuntu Coordinator</text>
+  <text x="516" y="232" class="s">role graph + RunSpec</text>
+  <text x="516" y="260" class="s">AO Runtime coordinator</text>
+  <text x="516" y="288" class="s">evidence collection</text>
+
+  <rect x="82" y="230" width="250" height="145" rx="14" class="mac"/>
+  <text x="124" y="280" class="t">macOS Worker</text>
+  <text x="124" y="314" class="s">Safari/WebKit checks</text>
+  <text x="124" y="342" class="s">Claude or Codex CLI auth</text>
+
+  <rect x="870" y="230" width="250" height="145" rx="14" class="win"/>
+  <text x="912" y="280" class="t">Windows Worker</text>
+  <text x="912" y="314" class="s">native PowerShell lane</text>
+  <text x="912" y="342" class="s">non-WSL Codex/Claude auth</text>
+
+  <path class="line" d="M340 300 C390 270 420 240 460 225"/>
+  <path class="line" d="M860 300 C810 270 780 240 740 225"/>
+
+  <rect x="250" y="420" width="700" height="52" rx="26" fill="#132536" stroke="#33516b"/>
+  <text x="292" y="454" class="p">Use the right host for the role: Linux services, Mac UX, Windows native behavior.</text>
+</svg>

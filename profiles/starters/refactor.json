@@ -1,0 +1,73 @@
+{
+  "profile": "refactor",
+  "schema": "ao-operator/profile/v1",
+  "version": 1,
+  "description": "Refactor chain with an explicit hardening pass so behavior-preserving work has a clear boundary before edits begin.",
+  "common_instructions": [
+    "Preserve behavior unless the brief explicitly asks for a behavior change.",
+    "Prefer existing abstractions and local style over new architecture."
+  ],
+  "roles": [
+    {
+      "id": "intake",
+      "role": "Intake",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": [],
+      "reads": ["task brief", "target code"],
+      "writes": ["run-artifacts/<slug>/roles/intake.md"],
+      "skills": ["skills/factory-intake/SKILL.md"],
+      "instructions": ["State the refactor goal, protected behavior, and files in scope."]
+    },
+    {
+      "id": "planner",
+      "role": "Planner",
+      "provider_key": "FACTORY_V3_PLANNER_PROVIDER",
+      "deps": ["intake"],
+      "reads": ["run-artifacts/<slug>/roles/intake.md", "target code"],
+      "writes": ["docs/plans/<slug>-plan.md"],
+      "skills": [],
+      "instructions": ["Plan incremental edits and identify behavior checks before implementation."]
+    },
+    {
+      "id": "plan-hardener",
+      "role": "Plan Hardener",
+      "provider_key": "FACTORY_V3_PLAN_HARDENER_PROVIDER",
+      "deps": ["planner"],
+      "reads": ["docs/plans/<slug>-plan.md", "target code"],
+      "writes": ["run-artifacts/<slug>/roles/plan-hardener.md"],
+      "skills": ["skills/plan-hardener/SKILL.md"],
+      "instructions": ["Reject vague refactors, missing rollback points, and missing parity checks."]
+    },
+    {
+      "id": "implementer",
+      "role": "Implementer",
+      "provider_key": "FACTORY_V3_IMPLEMENTER_PROVIDER",
+      "deps": ["plan-hardener"],
+      "reads": ["docs/plans/<slug>-plan.md", "run-artifacts/<slug>/roles/plan-hardener.md"],
+      "writes": ["scoped application artifacts from the accepted plan"],
+      "skills": [],
+      "instructions": ["Make the refactor in small behavior-preserving steps and keep verification local."],
+      "is_mutator": true
+    },
+    {
+      "id": "reviewer",
+      "role": "Reviewer",
+      "provider_key": "FACTORY_V3_SLICE_REVIEWER_PROVIDER",
+      "deps": ["implementer"],
+      "reads": ["git diff", "test output"],
+      "writes": ["run-artifacts/<slug>/roles/reviewer.md"],
+      "skills": [],
+      "instructions": ["Review for behavior drift, hidden coupling, and needless abstraction."]
+    },
+    {
+      "id": "evaluator-closer",
+      "role": "Evaluator Closer",
+      "provider_key": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
+      "deps": ["reviewer"],
+      "reads": ["docs/plans/<slug>-plan.md", "review artifact", "test output"],
+      "writes": ["docs/evaluations/<slug>-evaluation.md"],
+      "skills": ["skills/closure-verification/SKILL.md"],
+      "instructions": ["Close only when behavior checks prove the refactor did not change outputs."]
+    }
+  ]
+}

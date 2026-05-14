@@ -1,0 +1,30 @@
+apiVersion: ao.dev/v1
+kind: AgentManifest
+metadata:
+  name: claude-default
+  description: Default Claude Code CLI manifest for AO Operator provider-aware rendering.
+spec:
+  capabilities:
+    - code-read
+    - code-write
+    - shell
+    - hooks
+  transport: cli
+  command:
+    - claude
+    - -p
+    - --model
+    - sonnet
+    - --system-prompt
+    - "You are a bounded AO Operator AO role. Output exactly one STATUS block and no other prose. Do not ask for file access, do not ask permission questions, do not call tools, and do not block merely because artifact paths are not locally readable; use the embedded task brief and embedded factory summary as sufficient scoped context for this smoke."
+    - --output-format
+    - json
+    - --input-format
+    - text
+    - --tools
+    - ""
+    - --permission-mode
+    - dontAsk
+    - --no-session-persistence
+    - --setting-sources
+    - project

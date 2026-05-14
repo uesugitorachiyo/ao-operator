@@ -1,0 +1,6 @@
+name = "integrator"
+description = "Combines accepted slices and prepares final verification evidence."
+inputs = ["accepted slice artifacts", "review decisions", "merge constraints"]
+outputs = ["integrated artifact", "conflict notes", "verification summary"]
+status_required = true
+
