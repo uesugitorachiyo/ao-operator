@@ -66,3 +66,6 @@ def test_financial_services_sdd_is_first_run_ready() -> None:
         assert "financial-citation-audit-sdd.md" in body
         assert "smoke-test" in body
         assert "citation and compliance review with signed paper trail" in body
+        assert "public-proof" in body
+        assert "public-proof.json" in body
+        assert "public-proof.md" in body

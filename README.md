@@ -75,8 +75,13 @@ let AO Operator turn it into a local agent team by asking Codex or Claude Code:
 In the AO Operator repo, ingest the financial-services SDD at
 examples/ingestible-specs/financial-citation-audit-sdd.md with the smoke-test profile.
 
-Then summarize the requested outcome, generated role graph, RunSpec path, and
-status directory.
+Then enter the sibling financial-services profile repo and run:
+
+python3 -m financial_services_profile.cli public-proof --run-id public-sec-citation-proof
+
+Summarize the requested outcome, generated role graph, RunSpec path, status
+directory, `public-proof.json`, `public-proof.md`, evidence-pack path, and
+verify/replay verdicts.
 ```
 
 For the financial-services profile prompt, use
@@ -280,15 +285,16 @@ python3 scripts/factory_run.py tasks \
   --profile financial-services:earnings-note \
   --json
 
-# Live financial-services execution is owned by the standalone profile repo.
+# Full financial-services proof is owned by the standalone profile repo.
 cd ../financial-services-profile
-fsp run earnings-note --engine ao
+python3 -m financial_services_profile.cli public-proof --run-id public-sec-citation-proof
 ```
 
 The AO Operator path uses public SEC EDGAR source data and exposes the
 `financial-services:earnings-note` role contract for review. The profile repo
-owns the live `fsp run ... --engine ao` implementation and signed evidence
-packs. The claim is not "AI for finance." The claim is:
+owns the `public-proof` implementation, signed evidence pack, `verify.json`,
+`replay.json`, `public-proof.json`, and `public-proof.md`. The claim is not
+"AI for finance." The claim is:
 **cross-model citation and compliance review with a signed paper trail.**
 
 ## Live Three-Host Proof

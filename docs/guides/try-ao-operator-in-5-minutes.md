@@ -11,10 +11,13 @@ Try AO Operator with the financial-services citation-audit SDD.
 
 Goal:
 - Clone https://github.com/uesugitorachiyo/ao-operator.git if it is not already present.
+- Clone https://github.com/uesugitorachiyo/financial-services-profile.git next to it if it is not already present.
 - Enter the repo.
 - Read examples/ingestible-specs/financial-citation-audit-sdd.md.
 - Materialize the SDD through the provider-free AO Operator ingestion path.
 - Use the smoke-test profile.
+- Then enter ../financial-services-profile and run:
+  python3 -m financial_services_profile.cli public-proof --run-id public-sec-citation-proof
 - Do not set OPENAI_API_KEY or ANTHROPIC_API_KEY.
 
 Report back with:
@@ -24,6 +27,10 @@ Report back with:
 - the status directory path;
 - the role graph AO Operator used;
 - what evidence a live Codex or Claude Code run would produce next.
+- the `public-proof.json` path;
+- the `public-proof.md` path;
+- the signed evidence-pack path;
+- verify/replay verdicts.
 ```
 
 Expected useful result:
@@ -34,6 +41,9 @@ public wedge: citation and compliance review with signed paper trail
 role graph: intake -> test-engineer -> evaluator-closer
 runspec: run-artifacts/ingest-financial-citation-audit-sdd/ingest-financial-citation-audit-sdd.runspec.yaml
 status directory: run-artifacts/ingest-financial-citation-audit-sdd/
+profile proof: ../financial-services-profile/runs/public-sec-citation-proof/public-proof.json
+proof summary: ../financial-services-profile/runs/public-sec-citation-proof/public-proof.md
+verify/replay: PASS / PASS
 ```
 
 For the full copy-paste prompt, use
@@ -66,7 +76,7 @@ To run the full financial-services profile fixture after this operator trial:
 
 ```bash
 cd ../financial-services-profile
-fsp run earnings-note --engine ao --provider-mode fixture --demo-approval
+python3 -m financial_services_profile.cli public-proof --run-id public-sec-citation-proof
 ```
 
 ## Next Step After The Trial
