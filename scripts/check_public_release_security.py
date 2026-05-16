@@ -172,8 +172,17 @@ def add_finding(
     )
 
 
+SCANNER_SELF_PATHS = frozenset({
+    "scripts/check_public_release_security.py",
+    "scripts/check_ao_event_redaction_pre_release.py",
+    "scripts/check_ssh_no_accept_new_for_high_risk_actions.py",
+    "tests/test_check_ao_event_redaction_pre_release.py",
+    "scripts/public_clean_export.py",
+})
+
+
 def is_self_detection_literal(root: Path, path: Path, finding_id: str) -> bool:
-    return relpath(root, path) == "scripts/check_public_release_security.py" and finding_id in {
+    return relpath(root, path) in SCANNER_SELF_PATHS and finding_id in {
         "text.private_key",
         "text.api_key_assignment",
         "text.token_shape",

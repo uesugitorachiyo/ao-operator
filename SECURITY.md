@@ -14,13 +14,17 @@ Before public release or wider remote-worker exposure, run:
 ```bash
 python3 scripts/check_public_release_security.py --json
 python3 scripts/redact_strict_public_artifacts.py --fail-on-changes --json
+python3 scripts/check_ao_event_redaction_pre_release.py --scan-repo --write-output --json
 python3 scripts/check_status_json_integrity.py --json
 python3 scripts/check_public_release_security.py --strict-public --summary-only --json
 python3 scripts/check_dast_readiness.py --write-output --json
 python3 scripts/check_security_sdlc_roadmap.py --write-output --json
 python3 scripts/check_security_threat_model.py --write-output --json
 python3 scripts/check_pentest_gate.py --write-output --json
+python3 scripts/check_manual_pentest_authorized_default_false.py --write-output --json
 python3 scripts/check_host_key_evidence.py --write-output --json
+python3 scripts/check_ssh_no_accept_new_for_high_risk_actions.py --scan-repo --write-output --json
+python3 scripts/check_remote_transfer_ssh_strict_hostkey_enforced.py --scan-repo --write-output --json
 python3 scripts/classify_pentest_report.py --write-output --json
 python3 scripts/check_supply_chain_gate.py --write-output --json
 python3 scripts/pr_ready.py --json

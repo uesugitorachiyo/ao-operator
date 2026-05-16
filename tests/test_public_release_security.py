@@ -78,6 +78,18 @@ def test_ast_scan_flags_unpinned_ssh_host_key_policy(tmp_path):
     assert "ast.ssh_accept_new" in finding_ids(payload)
 
 
+def test_ast_scan_allows_no_accept_new_gate_self_detection_literals(tmp_path):
+    path = write(
+        tmp_path / "scripts" / "check_ssh_no_accept_new_for_high_risk_actions.py",
+        "MUTATION = 'ssh -o StrictHostKeyChecking=accept-new target.example true'\n",
+    )
+
+    payload = security.scan_paths(tmp_path, [path])
+
+    assert payload["verdict"] == "PASS"
+    assert "ast.ssh_accept_new" not in finding_ids(payload)
+
+
 def test_ast_scan_flags_shell_tar_extraction(tmp_path):
     path = write(
         tmp_path / "scripts" / "tar_extract.py",
