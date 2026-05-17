@@ -1,6 +1,6 @@
 # AO Operator
 
-[English](../../README.md) | **日本語**
+[English](../../README.md) | **日本語** | [简体中文](../zh-Hans/README.md) | [繁體中文](../zh-Hant/README.md) | [한국어](../ko/README.md)
 
 > AO は **AI Orchestration Operation (AI オーケストレーション運用)** の略です。
 > 製品名: **AO Operator**。GitHub リポジトリスラッグ: `ao-operator`。
