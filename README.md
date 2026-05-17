@@ -1,5 +1,7 @@
 # AO Operator
 
+**English** | [日本語](./docs/ja/README.md)
+
 > AO stands for **AI Orchestration Operation**. Product name:
 > **AO Operator**. GitHub repo slug: `ao-operator`.
 
