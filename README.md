@@ -316,7 +316,8 @@ Artifacts for review:
 The public launch foundation includes:
 
 - AO Operator naming decision
-- MIT license, contributor guide, code of conduct, issue and PR templates
+- MIT OR Apache-2.0 dual license, contributor guide, code of conduct, issue
+  and PR templates
 - Workflow-as-data export/import for `.factory/runspec.yaml`
 - Five starter profiles and five example briefs
 - Financial-services citation-audit profile scaffold
