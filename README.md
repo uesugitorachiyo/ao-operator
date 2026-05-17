@@ -1,6 +1,6 @@
 # AO Operator
 
-**English** | [日本語](./docs/ja/README.md) | [简体中文](./docs/zh-Hans/README.md) | [繁體中文](./docs/zh-Hant/README.md) | [한국어](./docs/ko/README.md)
+**English** | [日本語](./docs/ja/README.md) | [简体中文](./docs/zh-Hans/README.md) | [繁體中文](./docs/zh-Hant/README.md) | [한국어](./docs/ko/README.md) | [Español](./docs/es/README.md) | [Русский](./docs/ru/README.md) | [Français](./docs/fr/README.md) | [Deutsch](./docs/de/README.md) | [Português](./docs/pt/README.md)
 
 > AO stands for **AI Orchestration Operation**. Product name:
 > **AO Operator**. GitHub repo slug: `ao-operator`.

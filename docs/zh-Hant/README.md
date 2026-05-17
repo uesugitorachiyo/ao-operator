@@ -1,6 +1,6 @@
 # AO Operator
 
-[English](../../README.md) | [日本語](../ja/README.md) | [简体中文](../zh-Hans/README.md) | **繁體中文** | [한국어](../ko/README.md)
+[English](../../README.md) | [日本語](../ja/README.md) | [简体中文](../zh-Hans/README.md) | **繁體中文** | [한국어](../ko/README.md) | [Español](../es/README.md) | [Русский](../ru/README.md) | [Français](../fr/README.md) | [Deutsch](../de/README.md) | [Português](../pt/README.md)
 
 > AO 是 **AI Orchestration Operation (AI 編排運營)** 的縮寫。
 > 產品名: **AO Operator**。GitHub 倉庫 slug: `ao-operator`。

@@ -1,6 +1,6 @@
 # AO Operator
 
-[English](../../README.md) | [日本語](../ja/README.md) | [简体中文](../zh-Hans/README.md) | [繁體中文](../zh-Hant/README.md) | **한국어**
+[English](../../README.md) | [日本語](../ja/README.md) | [简体中文](../zh-Hans/README.md) | [繁體中文](../zh-Hant/README.md) | **한국어** | [Español](../es/README.md) | [Русский](../ru/README.md) | [Français](../fr/README.md) | [Deutsch](../de/README.md) | [Português](../pt/README.md)
 
 > AO는 **AI Orchestration Operation (AI 오케스트레이션 운영)** 의 약어입니다.
 > 제품명: **AO Operator**. GitHub 저장소 슬러그: `ao-operator`.
