@@ -43,10 +43,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -137,10 +139,24 @@ def strip_write_output_flag(command: str) -> str:
     return shlex.join(out)
 
 
+def split_gate_command(command: str, *, windows: bool | None = None) -> list[str]:
+    """Split a gate command without corrupting platform-native paths."""
+    is_windows = os.name == "nt" if windows is None else windows
+    args = shlex.split(command, posix=not is_windows)
+    if is_windows:
+        args = [
+            arg[1:-1] if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in {"'", '"'} else arg
+            for arg in args
+        ]
+    if args and Path(args[0]).name.lower() in {"python", "python.exe", "python3", "python3.exe"}:
+        args[0] = sys.executable
+    return args
+
+
 def run_gate(command: str, cwd: Path, timeout: int = 120) -> dict[str, Any]:
     """Run one gate command. Returns dict with exit_code, duration, stdout_tail."""
     started = datetime.now(timezone.utc)
-    args = shlex.split(command)
+    args = split_gate_command(command)
     try:
         result = subprocess.run(
             args,

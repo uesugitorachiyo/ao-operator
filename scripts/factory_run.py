@@ -3337,6 +3337,8 @@ def _runtime_capture_workspace_label(task: dict[str, object]) -> str:
         return "${FACTORY_V3_ROOT}"
     if re.match(r"^[A-Za-z]:[\\/]", workspace):
         return "${FACTORY_V3_ROOT}"
+    if workspace.startswith(("/", "\\")):
+        return "${FACTORY_V3_ROOT}"
     path = Path(workspace)
     if path.is_absolute():
         return "${FACTORY_V3_ROOT}"

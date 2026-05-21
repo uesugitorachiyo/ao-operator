@@ -175,6 +175,24 @@ def test_strip_write_output_flag_leaves_unrelated_commands_intact() -> None:
     assert gate.strip_write_output_flag(cmd) == cmd
 
 
+def test_split_gate_command_preserves_windows_absolute_paths() -> None:
+    args = gate.split_gate_command(
+        r"python3 C:\Users\example\private\ao-operator\fake_gate.py 0",
+        windows=True,
+    )
+    assert args[0]
+    assert args[1] == r"C:\Users\example\private\ao-operator\fake_gate.py"
+    assert args[2] == "0"
+
+
+def test_split_gate_command_strips_windows_quotes() -> None:
+    args = gate.split_gate_command(
+        r'python3 "C:\Users\example\private\ao-operator\fake gate.py" 0',
+        windows=True,
+    )
+    assert args[1] == r"C:\Users\example\private\ao-operator\fake gate.py"
+
+
 def test_gate_status_helper() -> None:
     assert gate.gate_status(0) == "PASS"
     assert gate.gate_status(1) == "FAIL"
