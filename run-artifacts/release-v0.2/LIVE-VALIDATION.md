@@ -5,7 +5,7 @@ Operator: Ubuntu Codex
 Status: PASS - Factory remote submission now dispatches through the AO coordinator across Ubuntu, Mac, and Windows workers.
 
 Post-validation transport hardening is now recorded in
-`docs/status/release-v0.2/ao-runtime-tls-posture.md`. `ao-runtime` `origin/main`
+`run-artifacts/release-v0.2/ao-runtime-tls-posture.md`. `ao-runtime` `origin/main`
 through `383bb569` adds the non-loopback RuntimeService guard, worker
 RuntimeService TLS/mTLS env loading, worker-to-coordinator client TLS/mTLS env
 loading, daemon-owned coordinator `[coordinator.tls]`, Ubuntu real-PEM
@@ -49,28 +49,28 @@ Validate the v0.2 live worker paths without operator copy/paste:
 | Gate | Result | Evidence |
 | --- | --- | --- |
 | Deprecated Codex config | PASS | `~/.codex/config.toml` uses `[features].hooks`. |
-| Mac RuntimeService smoke | PASS | `/tmp/ao-register-mac-smoke.json` returned `uname -s: Darwin` and hostname `Torachiyos-Mac-mini.local`. |
+| Mac RuntimeService smoke | PASS | `/tmp/ao-register-mac-smoke.json` returned `uname -s: Darwin` and hostname `[REDACTED_HOST].local`. |
 | D7 live cross-host pytest | PASS | `AO_LIVE_CROSS_HOST=1 ... pytest tests/e2e/test_cross_host_dispatch_e2e.py -q` passed in 124.55s. |
 | Evidence profile via `--remote` | PASS | `docs/evaluations/cross-host-evidence-live-evaluation.md` verdict is `ACCEPTED`; AO completed 6 tasks. |
-| Windows outbound registration | PASS | `docs/status/release-v0.2/windows-outbound-bootstrap/windows-live-validation-progress.md` records the registered `windows-live-worker` path. |
-| Windows W4 dispatch proof | PASS | `docs/status/release-v0.2/windows-outbound-bootstrap/windows-w4-dispatch-proof.md` records marker `WINDOWS_W4_DISPATCH_OK`. |
-| Windows Codex provider dispatch | PASS | `docs/status/release-v0.2/windows-outbound-bootstrap/windows-codex-path-live-smoke.md` records marker `WINDOWS_CODEX_PATH_OK`. |
-| AO Runtime TLS posture | PASS | `docs/status/release-v0.2/ao-runtime-tls-posture.md` records `ao-runtime` `383bb569`, Ubuntu real-PEM mTLS validation, WAL HTTP loopback enforcement, WAL HTTP server TLS, advertised-primary discovery, wrap-up coverage, maturity-roadmap closure, structured native deploy-artifact validation, and native Mac launchd validation. |
+| Windows outbound registration | PASS | `run-artifacts/release-v0.2/windows-outbound-bootstrap/windows-live-validation-progress.md` records the registered `windows-live-worker` path. |
+| Windows W4 dispatch proof | PASS | `run-artifacts/release-v0.2/windows-outbound-bootstrap/windows-w4-dispatch-proof.md` records marker `WINDOWS_W4_DISPATCH_OK`. |
+| Windows Codex provider dispatch | PASS | `run-artifacts/release-v0.2/windows-outbound-bootstrap/windows-codex-path-live-smoke.md` records marker `WINDOWS_CODEX_PATH_OK`. |
+| AO Runtime TLS posture | PASS | `run-artifacts/release-v0.2/ao-runtime-tls-posture.md` records `ao-runtime` `383bb569`, Ubuntu real-PEM mTLS validation, WAL HTTP loopback enforcement, WAL HTTP server TLS, advertised-primary discovery, wrap-up coverage, maturity-roadmap closure, structured native deploy-artifact validation, and native Mac launchd validation. |
 
 ## Key Artifacts
 
-- `docs/status/factoryv3-cross-host-d7-live/`
+- `run-artifacts/factoryv3-cross-host-d7-live/`
 - `docs/evidence/factoryv3-cross-host-d7-live/evidence-report.md`
 - `docs/evaluations/factoryv3-cross-host-d7-live-evaluation.md`
-- `docs/status/cross-host-evidence-live/`
+- `run-artifacts/cross-host-evidence-live/`
 - `docs/evidence/cross-host-evidence-live/evidence-report.md`
 - `docs/evaluations/cross-host-evidence-live-evaluation.md`
-- `docs/status/release-v0.2/mac-runtime-smoke.json`
-- `docs/status/release-v0.2/windows-outbound-bootstrap/windows-live-validation-progress.md`
-- `docs/status/release-v0.2/windows-outbound-bootstrap/windows-w4-dispatch-proof.md`
-- `docs/status/release-v0.2/windows-outbound-bootstrap/windows-codex-path-live-smoke.md`
-- `docs/status/release-v0.2/windows-outbound-bootstrap/windows-live-validation.json`
-- `docs/status/release-v0.2/ao-runtime-tls-posture.md`
+- `run-artifacts/release-v0.2/mac-runtime-smoke.json`
+- `run-artifacts/release-v0.2/windows-outbound-bootstrap/windows-live-validation-progress.md`
+- `run-artifacts/release-v0.2/windows-outbound-bootstrap/windows-w4-dispatch-proof.md`
+- `run-artifacts/release-v0.2/windows-outbound-bootstrap/windows-codex-path-live-smoke.md`
+- `run-artifacts/release-v0.2/windows-outbound-bootstrap/windows-live-validation.json`
+- `run-artifacts/release-v0.2/ao-runtime-tls-posture.md`
 
 ## Notes
 
@@ -87,7 +87,7 @@ Validate the v0.2 live worker paths without operator copy/paste:
 - Windows W4 is closed under the MDM-constrained topology: Windows initiates
   outbound SSH to Ubuntu, and Ubuntu-to-Windows SSH remains outside the valid
   control path. The live validation artifacts are in
-  `docs/status/release-v0.2/windows-outbound-bootstrap/`.
+  `run-artifacts/release-v0.2/windows-outbound-bootstrap/`.
 - The secure transport posture is now executable in AO Runtime. Loopback plus
   authenticated SSH tunnels remains valid for the Mac/Windows lanes; any
   non-loopback worker RuntimeService bind requires TLS or the explicit
@@ -97,5 +97,5 @@ Validate the v0.2 live worker paths without operator copy/paste:
   HTTP server TLS is now available through `[coordinator.wal_http.tls]` for
   direct-network `https://.../replication/wal`; plain WAL HTTP remains
   loopback-only.
-- Factory v3 now has a static guard for the committed Mac/Windows runbooks and
+- AO Operator now has a static guard for the committed Mac/Windows runbooks and
   bootstrap artifacts: `python3 scripts/check_cross_host_tls_posture.py --json`.

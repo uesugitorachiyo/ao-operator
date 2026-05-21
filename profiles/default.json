@@ -41,6 +41,8 @@
       "instructions": [
         "Harden the injected spec into an execution-ready plan with shape gates and verification oracles.",
         "Reject vague acceptance, overlapping writes, missing sensitive fields, or missing bug/refactor gate evidence.",
+        "Extract every MUST, MUST NOT, rubric item, acceptance criterion, and content-preservation rule into durable obligation IDs; exact text, equations, and required strings must carry checkable fragments.",
+        "For complex agentic work, require a final AO2 obligation ledger at run-artifacts/<slug>/obligation-ledger.json and make failed or unverified blocking obligations a closure blocker.",
         "Do not introduce a required role or gate that is absent from the materialized DAG."
       ]
     },
@@ -115,6 +117,7 @@
         "For untracked new files, `git diff --no-index /dev/null <path>` is sufficient integration evidence when the provider sandbox cannot stage files.",
         "Do not return BLOCKED solely because `git add`, `git add -N`, or plain `git diff --stat` cannot represent an untracked file inside the provider sandbox.",
         "Treat reviewer concerns about slug-global validation in isolated worktrees as non-blocking when they cite missing global generated artifacts rather than slice scope drift or failed scoped verification.",
+        "Preserve obligation IDs from the plan into the final handoff; cite concrete files, lines, command output, or exact-fragment evidence for every obligation touched by integration.",
         "Report merge order, conflicts, skipped patches, verification evidence, and unresolved blockers."
       ]
     },
@@ -133,6 +136,7 @@
         "If `python3 -m pytest` or `python3 scripts/verify_closure.py --with-pytest` fails only because that Python lacks pytest (`No module named pytest`), retry with another pytest-capable interpreter on PATH (e.g. `/opt/homebrew/bin/python3` on macOS, `python.exe` on Windows native, or the path emitted by `which python3` / `where python`) and/or the `pytest` executable on PATH before rejecting.",
         "Do not return BLOCKED solely because one Python interpreter lacks pytest when another repo-available Python or pytest executable completes the same closure checks successfully.",
         "Do not reject solely because `verify_closure.py --with-pytest` or `artifact_hygiene.py --strict` classifies the current live slug as rejected/archive-or-drop before AO Operator writes final post-AO evaluation artifacts; treat that as a timing concern when validate_factory and upstream handoffs pass.",
+        "When the run is complex or an obligation ledger is present, run `python3 scripts/verify_closure.py --require-obligation-ledger` and reject any failed or unverified MUST/rubric/content-preservation obligation.",
         "Reject blocked/rejected injected handoffs, failed verification, or write-scope drift when that evidence is available."
       ]
     }

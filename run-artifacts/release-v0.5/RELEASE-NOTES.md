@@ -1,4 +1,4 @@
-# Factory v3 - Release Notes v0.5.0
+# AO Operator - Release Notes v0.5.0
 
 **Tag:** `v0.5.0`
 **Tag commit:** `31e5e229`
@@ -11,7 +11,7 @@
 
 v0.5.0 is a focused operator-hardening release after `v0.4.0`.
 It closes the post-v0.4 trail of small but important fixes that make
-Factory v3's next safe action, blocked execution state, and current
+AO Operator's next safe action, blocked execution state, and current
 RunSpec identity verifiable from committed artifacts rather than chat
 history.
 

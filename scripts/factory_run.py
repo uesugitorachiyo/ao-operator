@@ -24,6 +24,7 @@ import factory_profiles
 import factory_v3_config
 import gate_b
 import gate_r
+import obligation_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 AO_RUNTIME_DEFAULT = (ROOT / ".." / "ao-runtime").resolve()
@@ -698,8 +699,9 @@ def rel(path: Path) -> str:
 
 def display_path(path: Path) -> str:
     public_path = rel(path) if path.is_absolute() else Path(path).as_posix()
-    if public_path.startswith("docs/status/"):
-        return "run-artifacts/" + public_path[len("docs/status/") :]
+    legacy_status_prefix = "/".join(["docs", "status", ""])
+    if public_path.startswith(legacy_status_prefix):
+        return "run-artifacts/" + public_path[len(legacy_status_prefix) :]
     return public_path
 
 
@@ -1050,6 +1052,8 @@ def role_instructions(task_id: str, profile: dict[str, object] | None = None) ->
         return common + [
             "Harden the injected spec into an execution-ready plan with shape gates and verification oracles.",
             "Reject vague acceptance, overlapping writes, missing sensitive fields, or missing bug/refactor gate evidence.",
+            "Extract every MUST, MUST NOT, rubric item, acceptance criterion, and content-preservation rule into durable obligation IDs; exact text, equations, and required strings must carry checkable fragments.",
+            "For complex agentic work, require a final AO2 obligation ledger at run-artifacts/<slug>/obligation-ledger.json and make failed or unverified blocking obligations a closure blocker.",
             "Do not introduce a required role or gate that is absent from the materialized DAG.",
         ]
     if task_id == "spec-forge-contract":
@@ -1097,6 +1101,7 @@ def role_instructions(task_id: str, profile: dict[str, object] | None = None) ->
             "For untracked new files, `git diff --no-index /dev/null <path>` is sufficient integration evidence when the provider sandbox cannot stage files.",
             "Do not return BLOCKED solely because `git add`, `git add -N`, or plain `git diff --stat` cannot represent an untracked file inside the provider sandbox.",
             "Treat reviewer concerns about slug-global validation in isolated worktrees as non-blocking when they cite missing global generated artifacts rather than slice scope drift or failed scoped verification.",
+            "Preserve obligation IDs from the plan into the final handoff; cite concrete files, lines, command output, or exact-fragment evidence for every obligation touched by integration.",
             "Report merge order, conflicts, skipped patches, verification evidence, and unresolved blockers.",
         ]
     if task_id == "evaluator-closer":
@@ -1112,6 +1117,7 @@ def role_instructions(task_id: str, profile: dict[str, object] | None = None) ->
             "If `python3 -m pytest` or `python3 scripts/verify_closure.py --with-pytest` fails only because that Python lacks pytest (`No module named pytest`), retry with another pytest-capable interpreter on PATH (e.g. `/opt/homebrew/bin/python3` on macOS, `python.exe` on Windows native, or the path emitted by `which python3` / `where python`) and/or the `pytest` executable on PATH before rejecting.",
             "Do not return BLOCKED solely because one Python interpreter lacks pytest when another repo-available Python or pytest executable completes the same closure checks successfully.",
             "Do not reject solely because `verify_closure.py --with-pytest` or `artifact_hygiene.py --strict` classifies the current live slug as rejected/archive-or-drop before AO Operator writes final post-AO evaluation artifacts; treat that as a timing concern when validate_factory and upstream handoffs pass.",
+            "When the run is complex or an obligation ledger is present, run `python3 scripts/verify_closure.py --require-obligation-ledger` and reject any failed or unverified MUST/rubric/content-preservation obligation.",
             *profile_validation_instruction,
             "Reject blocked/rejected injected handoffs, failed verification, or write-scope drift when that evidence is available.",
         ]
@@ -1414,6 +1420,7 @@ Factory Verdict: {verdict}
 - AO events: run-artifacts/{intake.slug}/{intake.slug}-ao-events.md
 - Roles: run-artifacts/{intake.slug}/roles/
 - Patch bundles: run-artifacts/{intake.slug}/patches/
+- Obligation ledger: run-artifacts/{intake.slug}/obligation-ledger.json
 - Evaluation: docs/evaluations/{intake.slug}-evaluation.md
 """
     if materialized_workspace:
@@ -1438,6 +1445,7 @@ def materialize(
     status_path = status_dir / f"{intake.slug}-status.md"
     events_path = status_dir / f"{intake.slug}-ao-events.md"
     evaluation_path = ROOT / "docs" / "evaluations" / f"{intake.slug}-evaluation.md"
+    obligation_ledger_path = status_dir / "obligation-ledger.json"
     roles_dir = status_dir / "roles"
     patches_dir = status_dir / "patches"
     evidence_packs_dir = status_dir / "evidence-packs"
@@ -1452,6 +1460,12 @@ def materialize(
         evaluation_path.unlink()
 
     write(spec_path, spec_body(intake, providers))
+    obligation_ledger.write_ledger(
+        obligation_ledger_path,
+        obligation_ledger.exact_fragment_ledger(
+            obligation_ledger.extract_ledger(spec_path, rel(spec_path))
+        ),
+    )
     write(plan_path, plan_body(intake, providers, tasks, topology, contract))
     # Status doc must be written BEFORE prompt rendering. Prompts embed the
     # status doc via artifact_injections (read_for_prompt at render time);
@@ -1486,6 +1500,7 @@ def materialize(
         "status": status_path,
         "evaluation": evaluation_path,
         "events": events_path,
+        "obligation_ledger": obligation_ledger_path,
         "roles_dir": roles_dir,
         "patches_dir": patches_dir,
         "evidence_packs_dir": evidence_packs_dir,
@@ -2674,6 +2689,39 @@ def run_factory_validation(slug: str, profile: str | None = None) -> str:
     return f"`{command_text(cmd)}` exit={result.returncode}"
 
 
+def obligation_ledger_evidence(paths: dict[str, Path]) -> tuple[list[str], list[str]]:
+    ledger_path = paths.get("obligation_ledger")
+    if not ledger_path or not ledger_path.is_file():
+        return [], ["Obligation ledger missing."]
+    try:
+        ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+        checked = obligation_ledger.check_ledger(ledger, ROOT)
+        obligation_ledger.write_ledger(ledger_path, checked)
+    except Exception as exc:
+        return [], [f"Obligation ledger check failed: {exc}"]
+
+    summary = checked.get("summary") if isinstance(checked.get("summary"), dict) else {}
+    verdict = str(checked.get("verdict") or "")
+    fail = int(summary.get("fail") or 0)
+    unverified = int(summary.get("unverified") or 0)
+    evidence = [
+        (
+            f"Obligation ledger verdict={verdict} "
+            f"pass={int(summary.get('pass') or 0)} fail={fail} "
+            f"unverified={unverified} waived={int(summary.get('waived') or 0)} "
+            f"path={rel(ledger_path)}"
+        )
+    ]
+    blockers: list[str] = []
+    if verdict != "accepted":
+        blockers.append("Obligation ledger verdict was not accepted.")
+    if fail:
+        blockers.append(f"Obligation ledger has failed obligations: {fail}.")
+    if unverified:
+        blockers.append(f"Obligation ledger has unverified obligations: {unverified}.")
+    return evidence, blockers
+
+
 def contract_evidence(contract: Path | None) -> tuple[list[str], list[str]]:
     if not contract:
         return ["No Spec Forge contract configured for this run."], []
@@ -2947,7 +2995,7 @@ def write_evaluation(
 
 def _artifact_paths_for_evidence_pack(paths: dict[str, Path]) -> dict[str, list[Path]]:
     artifacts: list[Path] = []
-    for key in ("status", "evaluation", "events", "runspec", "spec", "plan"):
+    for key in ("status", "evaluation", "events", "runspec", "spec", "plan", "obligation_ledger"):
         path = paths.get(key)
         if path and path.is_file():
             artifacts.append(path)
@@ -2962,7 +3010,7 @@ def redact_evidence_pack_sources(paths: dict[str, Path]) -> None:
     import redact_strict_public_artifacts
 
     files: list[Path] = []
-    for key in ("status", "evaluation", "events", "runspec", "spec", "plan"):
+    for key in ("status", "evaluation", "events", "runspec", "spec", "plan", "obligation_ledger"):
         path = paths.get(key)
         if path and path.is_file():
             files.append(path)
@@ -3013,12 +3061,9 @@ def materialize_deterministic_replay_outputs(
     the pack self-contained without trusting provider-authored files.
     """
     status = paths.get("status")
-    if status:
-        slug = status.parent.name
-    else:
-        evidence_packs_dir = paths.get("evidence_packs_dir")
-        slug = evidence_packs_dir.parent.name if evidence_packs_dir else "deterministic-replay"
-    replay_root = ROOT / "docs" / "status" / slug / "deterministic-replay"
+    if not status:
+        return {}
+    replay_root = status.parent / "deterministic-replay"
     artifacts: dict[str, list[Path]] = {}
     for task in tasks:
         if task.get("deterministic") is not True:
@@ -3803,6 +3848,8 @@ def run_live(
         materialized_path = None
 
     blockers.extend(contract_blockers)
+    obligation_evidence, obligation_blockers = obligation_ledger_evidence(paths)
+    blockers.extend(obligation_blockers)
     environmental_scrubbed: list[str] = []
     if workspace_root is not None:
         environmental_scrubbed = scrub_claude_mem_pollution(workspace_root)
@@ -3816,6 +3863,7 @@ def run_live(
         *failure_diagnostics_evidence(event_text),
         *contract_validation_evidence,
         *validation_evidence,
+        *obligation_evidence,
     ]
     if environmental_scrubbed:
         evidence.append("Workspace environmental scrubbed: " + ", ".join(environmental_scrubbed))
@@ -3931,12 +3979,111 @@ def _handle_spec_kit_alias(argv: list[str]) -> int | list[str]:
     return 0
 
 
+def hermes_context_main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog=f"{Path(sys.argv[0]).name} hermes-context")
+    parser.add_argument("--slug", required=True, help="Factory status slug under run-artifacts/<slug>")
+    parser.add_argument("--json", action="store_true", help="Emit machine-readable Hermes context")
+    args = parser.parse_args(argv)
+    payload = hermes_context_payload(args.slug)
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(f"schema={payload['schema']}")
+        print(f"slug={payload['slug']}")
+        print(f"status={payload['artifacts']['status']['path']}")
+        print(f"runspec={payload['artifacts']['runspec']['path']}")
+        print(f"evidence_pack_count={payload['artifacts']['evidence_packs']['count']}")
+    return 0
+
+
+def hermes_context_payload(slug: str) -> dict[str, object]:
+    clean_slug = re.sub(r"[^A-Za-z0-9._-]+", "-", slug).strip("-")
+    if not clean_slug:
+        raise ValueError("slug must contain at least one safe path character")
+    status_dir = ROOT / "run-artifacts" / clean_slug
+    status_path = status_dir / f"{clean_slug}-status.md"
+    runspec_path = status_dir / f"{clean_slug}.runspec.yaml"
+    obligation_ledger_path = status_dir / "obligation-ledger.json"
+    evidence_packs_dir = status_dir / "evidence-packs"
+    evidence_packs = sorted(evidence_packs_dir.glob("*/evidence-pack.json")) if evidence_packs_dir.exists() else []
+    tags = ["hermes", "ao-operator", "ao-operator", clean_slug]
+    summary_body = (
+        f"AO Operator status context for {clean_slug}. "
+        f"Status exists={status_path.exists()}, RunSpec exists={runspec_path.exists()}, "
+        f"obligation ledger exists={obligation_ledger_path.exists()}, "
+        f"evidence packs={len(evidence_packs)}."
+    )
+    return {
+        "schema": "ao-operator/hermes-context/v1",
+        "slug": clean_slug,
+        "status_dir": rel(status_dir),
+        "artifacts": {
+            "status": path_descriptor(status_path),
+            "runspec": path_descriptor(runspec_path),
+            "obligation_ledger": path_descriptor(obligation_ledger_path),
+            "evidence_packs": {
+                "dir": rel(evidence_packs_dir),
+                "count": len(evidence_packs),
+                "items": [path_descriptor(path) for path in evidence_packs],
+            },
+        },
+        "memory": {
+            "tags": tags,
+            "recommended_records": [
+                {
+                    "kind": "factory-context",
+                    "title": f"AO Operator context: {clean_slug}",
+                    "body": summary_body,
+                    "source_path": rel(status_path),
+                }
+            ],
+            "ao2_write_command": [
+                "ao2",
+                "memory",
+                "write",
+                "--target",
+                ".",
+                "--kind",
+                "factory-context",
+                "--title",
+                f"AO Operator context: {clean_slug}",
+                "--body",
+                summary_body,
+                "--source-path",
+                rel(status_path),
+                *sum((["--tag", tag] for tag in tags), []),
+                "--json",
+            ],
+        },
+        "trust_boundary": {
+            "hermes_role": "front_end_and_memory_reader",
+            "factory_v3_role": "ao_operator_compatibility_layer",
+            "ao2_role": "trusted_execution_memory_and_evidence_boundary",
+        },
+    }
+
+
+def path_descriptor(path: Path) -> dict[str, object]:
+    return {
+        "path": rel(path),
+        "exists": path.exists(),
+        "bytes": path.stat().st_size if path.exists() and path.is_file() else 0,
+    }
+
+
 def main() -> int:
     alias_result = _handle_spec_kit_alias(sys.argv)
     if isinstance(alias_result, int):
         return alias_result
     if alias_result is not sys.argv:
         sys.argv = alias_result
+
+    if len(sys.argv) > 1 and sys.argv[1] == "hermes-context":
+        try:
+            return hermes_context_main(sys.argv[2:])
+        except ValueError as exc:
+            print(f"factory_run.py hermes-context: {exc}", file=sys.stderr)
+            return 2
 
     if len(sys.argv) > 1 and sys.argv[1] == "replay":
         import evidence_pack_verify

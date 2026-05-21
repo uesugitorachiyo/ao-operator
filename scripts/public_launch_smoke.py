@@ -134,17 +134,59 @@ def remove_transient_git_dir(workspace: Path) -> None:
     if not git_dir.exists():
         return
 
-    def on_rm_error(function: Any, path: str, _: Any) -> None:
-        target = Path(path)
+    def make_writable(path: Path) -> None:
         try:
-            target.chmod(stat.S_IWRITE | stat.S_IREAD)
+            path.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
         except OSError:
             pass
+
+    def on_rm_error(function: Any, path: str, _: Any) -> None:
+        target = Path(path)
+        make_writable(target.parent)
+        make_writable(target)
         function(path)
 
     for attempt in range(5):
         try:
+            for root, dirs, files in os.walk(git_dir):
+                make_writable(Path(root))
+                for name in [*dirs, *files]:
+                    make_writable(Path(root) / name)
             shutil.rmtree(git_dir, onerror=on_rm_error)
+            return
+        except FileNotFoundError:
+            return
+        except OSError:
+            if attempt == 4:
+                raise
+            time.sleep(0.2)
+
+
+def remove_transient_workspace(workspace: Path) -> None:
+    """Remove the copied smoke workspace before TemporaryDirectory cleanup."""
+
+    if not workspace.exists():
+        return
+
+    def make_writable(path: Path) -> None:
+        try:
+            path.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+        except OSError:
+            pass
+
+    def on_rm_error(function: Any, path: str, _: Any) -> None:
+        target = Path(path)
+        make_writable(target.parent)
+        make_writable(target)
+        function(path)
+
+    for attempt in range(5):
+        try:
+            for root, dirs, files in os.walk(workspace):
+                make_writable(Path(root))
+                for name in [*dirs, *files]:
+                    make_writable(Path(root) / name)
+            shutil.rmtree(workspace, onerror=on_rm_error)
             return
         except FileNotFoundError:
             return
@@ -237,6 +279,7 @@ def build_report(*, keep_workspace: bool = False) -> dict[str, Any]:
                 workspace_hint = None
         finally:
             remove_transient_git_dir(workspace)
+            remove_transient_workspace(workspace)
 
     status = "PASS" if scaffold["returncode"] == 0 and all(d["status"] == "PASS" for d in demos) else "FAIL"
     return {

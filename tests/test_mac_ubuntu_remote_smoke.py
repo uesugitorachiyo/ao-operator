@@ -34,7 +34,7 @@ def test_build_payload_has_safe_manifest_without_provider_dispatch(tmp_path):
 
 def write_return(path: Path, *, body: bytes = b"ubuntu remote smoke artifact\n") -> Path:
     payload = {
-        "schema": "factory-v3/mac-ubuntu-remote-smoke-return/v1",
+        "schema": "ao-operator/mac-ubuntu-remote-smoke-return/v1",
         "verdict": "PASS",
         "smoke_id": "smoke-test",
         "source_commit": "abc123",

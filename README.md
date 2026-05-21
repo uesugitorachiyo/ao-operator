@@ -117,6 +117,24 @@ agent platform is too much.
 | Domain demos beyond toy examples | Financial-services citation audit and secure-agent coding profiles |
 | Native multi-OS product work | Ubuntu, macOS, and Windows non-WSL workers can cooperate on one run |
 
+## Obligation Closure
+
+For complex agentic work, carry a durable obligation ledger from plan hardening
+into closure. `factory_run.py` now emits `run-artifacts/<slug>/obligation-ledger.json`
+from exact fragments in the generated spec, refreshes it against the repo
+before final evaluation, and blocks closure when required fragments are failed
+or unverified. AO2 can also extract and check this ledger directly:
+
+```sh
+ao2 contract extract --spec docs/specs/<slug>-spec.md --out run-artifacts/<slug>/obligation-ledger.json --json
+ao2 contract check --ledger run-artifacts/<slug>/obligation-ledger.json --target . --out run-artifacts/<slug>/obligation-ledger.json --json
+python3 scripts/verify_closure.py --require-obligation-ledger
+```
+
+`verify_closure.py` rejects failed or unverified obligations when a ledger is
+required. This makes MUST, rubric, acceptance, and exact content-preservation
+rules explicit closure inputs instead of prompt prose.
+
 Coming from Superpowers, GSD, gstack, or Spec-Kit-style workflows? Read
 [`docs/guides/coming-from-superpowers-gsd-gstack.md`](docs/guides/coming-from-superpowers-gsd-gstack.md)
 and the direct comparison guide
@@ -205,6 +223,235 @@ contracts in [`docs/sdd/01-architecture.md`](docs/sdd/01-architecture.md) and
 [`docs/sdd/03-interfaces-and-contracts.md`](docs/sdd/03-interfaces-and-contracts.md).
 Runtime validation is pinned by `@ao-runtime/openclaw-adapter`,
 `@ao-runtime/hermes-plugin`, and `openclaw-transport` tests in AO Runtime.
+
+Hermes can inspect a factory run without launching AO or mutating artifacts:
+
+```bash
+python3 scripts/factory_run.py hermes-context --slug <slug> --json
+```
+
+The command emits `ao-operator/hermes-context/v1` with status, RunSpec,
+obligation-ledger, evidence-pack, trust-boundary, and AO2 memory-write hints.
+Use it as the compatibility surface for a Hermes front end while AO Operator
+continues to own role contracts, provider routing, and evaluator closure.
+
+For an executable local bridge, use:
+
+```bash
+python3 scripts/hermes_ao_bridge.py context --slug <slug> --json
+python3 scripts/hermes_ao_bridge.py remember-context --slug <slug> --ao2-target ../ao2 --json
+python3 scripts/hermes_ao_bridge.py remember-note --kind conversation-summary --title "..." --body "..." --ao2-target ../ao2 --json
+python3 scripts/hermes_ao_bridge.py search-memory --query hermes --ao2-target ../ao2 --json
+python3 scripts/hermes_ao_bridge.py export-memory --query hermes --out .ao2/hermes-memory.json --ao2-target ../ao2 --json
+python3 scripts/hermes_ao_bridge.py publish-memory --export .ao2/hermes-memory.json --control-plane-url http://127.0.0.1:8744 --api-token "$AO2_CP_API_TOKEN" --json
+python3 scripts/hermes_ao_bridge.py provider-registry --ao2-target ../ao2 --json
+python3 scripts/hermes_ao_bridge.py publish-provider-registry --ao2-target ../ao2 --control-plane-url http://127.0.0.1:8744 --api-token "$AO2_CP_API_TOKEN" --json
+python3 scripts/hermes_ao_bridge.py publish-provider-registry --ao2-target ../ao2 --control-plane-url http://127.0.0.1:8744 --api-token "$AO2_CP_API_TOKEN" --signing-key ../ao2/.release-signing/ao2-release-signing-key.pem --signer-id ao2-provider-registry --json
+```
+
+The bridge emits `ao-operator/hermes-ao-bridge/v1` and shells out only to the
+local `ao2` binary for memory write/search/link/export/publish operations.
+Hermes stays a front end and memory reader; AO2 remains the trusted memory and
+evidence boundary. `publish-memory` delegates to `ao2 memory publish`, posting
+the exported bundle to private `ao2-control-plane` as read-only evidence.
+`provider-registry` delegates to `ao2 provider registry --json` so Hermes cron
+and TUI flows can inspect live-provider guards, extension slots, and lifecycle
+gates without parsing docs or receiving direct provider execution authority.
+`publish-provider-registry` posts that same AO2-owned snapshot to
+`ao2-control-plane` with token redaction in bridge artifacts. When
+`--signing-key` is provided, the bridge asks AO2 to use the signed registry
+endpoint so the control plane can verify and display producer trust.
+
+Hermes can also start and inspect a governed AO2 run through the same bridge
+without taking over AO2 policy or evidence decisions:
+
+```bash
+python3 scripts/hermes_ao_bridge.py governed-run \
+  --workflow default \
+  --ao2-target ../ao2 \
+  --run-id hermes-demo-run \
+  --provider codex \
+  --provider-prompt-file prompts/hermes-demo.md \
+  --pause-for-approval \
+  --json
+
+python3 scripts/hermes_ao_bridge.py watch-run \
+  --ao2-target ../ao2 \
+  --run-id hermes-demo-run \
+  --json
+```
+
+Use `--dry-run` first when scheduling through Hermes cron or TUI. The bridge
+requires `--provider-prompt-file` instead of raw prompt text so long prompts do
+not leak into process listings or handoff reports, and it fails closed when
+provider API-key environment variables are present. The returned paths point to
+AO2-owned run records and evidence packs under `.ao2/runs/<run-id>/`; Hermes
+should render or queue those paths, not rewrite them.
+
+Hermes can request read-only git evidence through AO2 without shelling out to
+git directly:
+
+```bash
+python3 scripts/hermes_ao_bridge.py git-status --ao2-target ../ao2 --json
+python3 scripts/hermes_ao_bridge.py git-diff --ao2-target ../ao2 --stat --json
+```
+
+These commands return AO2 `ao2.git-status.v1` and `ao2.git-diff.v1` evidence
+payloads. They are read-only and do not permit `git add`, `commit`, `push`, or
+other repository mutation.
+
+For explicit release checkpoints, Hermes can route AO2-owned commit and tag
+requests without receiving general git access:
+
+```bash
+python3 scripts/hermes_ao_bridge.py git-commit \
+  --ao2-target ../ao2 \
+  --message "checkpoint" \
+  --path README.md \
+  --json
+
+python3 scripts/hermes_ao_bridge.py git-commit \
+  --ao2-target ../ao2 \
+  --message "checkpoint" \
+  --path README.md \
+  --approve-action-digest <digest-from-preview> \
+  --json
+
+python3 scripts/hermes_ao_bridge.py git-tag \
+  --ao2-target ../ao2 \
+  --tag v0.4.78 \
+  --message "v0.4.78" \
+  --approve-action-digest <digest-from-preview> \
+  --json
+```
+
+The preview call returns AO2's exact action digest and does not mutate the repo.
+The approved call executes only when that digest matches. The bridge still does
+not expose `git push`.
+
+Hermes can also run AO2 obligation lifecycle gates so long-running tasks check
+spec/rubric obligations at midpoint and closure:
+
+```bash
+python3 scripts/hermes_ao_bridge.py contract-gate \
+  --ao2-target ../ao2 \
+  --ledger ../ao2/run-artifacts/my-task/obligation-ledger.json \
+  --stage midpoint \
+  --out ../ao2/run-artifacts/my-task/midpoint-gate.json \
+  --json
+```
+
+The bridge preserves AO2's exit code in `ao2_exit_code` and returns the
+`ao2.obligation-gate.v1` payload. A failed gate is visible to Hermes as
+structured evidence without granting Hermes direct repository mutation access.
+
+To verify the bridge and Hermes plugin path across committed source archives,
+run:
+
+```bash
+python3 scripts/hermes_bridge_three_os_smoke.py --json
+```
+
+Add `--ubuntu-target ao2-ubuntu-nucx --windows-target win-hp255-via-ubuntu
+--require-remotes` to require remote Ubuntu and native Windows checks. The
+script uses local `git archive` snapshots instead of GitHub clone/auth paths.
+For a local end-to-end publish smoke against the real private
+`ao2-control-plane`, add:
+
+```bash
+python3 scripts/hermes_bridge_three_os_smoke.py \
+  --local-only \
+  --skip-node \
+  --control-plane-mode real \
+  --ao2-control-plane ../ao2-control-plane \
+  --ao2-bin ../ao2/target/release/ao2 \
+  --json
+```
+
+That mode starts `ao2-cp-server` with a temporary data directory, publishes the
+Hermes memory export through `ao2 memory publish`, and verifies the export list
+through `/api/v1/memory/export`.
+
+The same real control-plane mode can be required on the Ubuntu and native
+Windows remote lanes. In that case the smoke script ships committed `git
+archive` snapshots of AO Operator, AO Runtime, AO2, and ao2-control-plane to the
+remote hosts, builds `ao2` there, starts the private control-plane locally on
+each host, and verifies that the Hermes memory export reaches the
+control-plane:
+
+```bash
+python3 scripts/hermes_bridge_three_os_smoke.py \
+  --control-plane-mode real \
+  --ao2-root ../ao2 \
+  --ao2-control-plane ../ao2-control-plane \
+  --ao2-bin ../ao2/target/release/ao2 \
+  --ubuntu-target ao2-ubuntu-nucx \
+  --windows-target win-hp255-via-ubuntu \
+  --require-remotes \
+  --json
+```
+
+For an overnight Hermes cron slot, use the bounded advancement runner. It writes
+a JSON report, Markdown report, ranked gap backlog, and generated AO2 obligation
+ledger, runs finite verification steps, inserts midpoint and closure
+`contract-gate` checks through the Hermes AO bridge, captures an
+`ao2-provider-registry.json` guard snapshot, enriches the AO2 release smoke
+summary with the latest obligation-gate metadata, and stops on the first failing
+step instead of mutating code indefinitely:
+
+```bash
+python3 scripts/hermes_nightly_ao2_advancement.py \
+  --ao2-root ../ao2 \
+  --ao2-control-plane ../ao2-control-plane \
+  --ao-runtime ../ao-runtime \
+  --require-remotes \
+  --json
+```
+
+Use `--dry-run` first to inspect the exact AO2, control-plane, provider-registry
+snapshot, midpoint gate, bridge-smoke, closure gate, and gap-mining work that
+cron will execute.
+
+Generate guarded scheduler templates for all three host families:
+
+```bash
+python3 scripts/hermes_nightly_scheduler.py \
+  --ao2-root ../ao2 \
+  --ao2-control-plane ../ao2-control-plane \
+  --ao-runtime ../ao-runtime \
+  --json
+```
+
+The generated launchd plist, systemd service/timer, and Windows Task Scheduler
+XML are written under `run-artifacts/hermes-nightly-scheduler/`. The script does
+not modify the host scheduler unless `--install` is passed explicitly.
+
+To fire an immediate run and then repeat hourly until 5am, generate an hourly
+window template:
+
+```bash
+python3 scripts/hermes_nightly_scheduler.py \
+  --hourly-window-start 0 \
+  --hourly-window-end 5 \
+  --run-at-load \
+  --json
+```
+
+The hourly window is emitted as multiple launchd calendar entries, multiple
+systemd `OnCalendar` entries, and multiple Windows CalendarTrigger entries so
+the same bounded advancement cadence is visible on macOS, Ubuntu, and Windows.
+
+If the same nightly step fails repeatedly under the same Factory/AO2/control
+plane revision fingerprint, the runner blocks the next unchanged cycle instead
+of burning another cron slot. It writes `nightly-repair-handoff.json`,
+`nightly-repair-handoff.md`, and `nightly-repair-prompt.md` into the run output
+directory with the recent failing log excerpt embedded. Paste
+`nightly-repair-prompt.md` into Hermes TUI to repair the failed step, then rerun
+the nightly with `--force-repeat-failure-run` after the fix is in place.
+
+To smoke the install path without modifying the host scheduler, add
+`--install --install-smoke --install-platform macos|ubuntu|windows`. This
+prints the exact copy/load/enable/create actions that a real install would run.
 
 ## Native Mac, Ubuntu, And Windows Coworking
 

@@ -10,7 +10,7 @@
   "deterministic_task_count": 1,
   "errors": [],
   "event_count": 2,
-  "pack": "docs/status/live-bug-fix/evidence-packs/evidence-pack-0123456789abcdef.tar.zst",
+  "pack": "run-artifacts/live-bug-fix/evidence-packs/evidence-pack-0123456789abcdef.tar.zst",
   "run_id": "0123456789abcdef",
   "schema": "ao-operator/evidence-pack-replay/v1",
   "task_count": 1,
@@ -22,7 +22,7 @@
       "signature": "PASS"
     },
     "errors": [],
-    "pack": "docs/status/live-bug-fix/evidence-packs/evidence-pack-0123456789abcdef.tar.zst",
+    "pack": "run-artifacts/live-bug-fix/evidence-packs/evidence-pack-0123456789abcdef.tar.zst",
     "run_id": "0123456789abcdef",
     "schema": "ao-operator/evidence-pack-verify/v1",
     "verdict": "PASS"

@@ -29,6 +29,11 @@ __pycache__/
 # AO policy CLI scratch (approvals.db default path; per `ao-policy --help`).
 /.ao/
 
+# Hermes launchd runtime output. Scheduler templates are committed; live run
+# payloads and logs are local operational state.
+/docs/status/hermes-nightly-control-plane/latest-run/
+/docs/status/hermes-nightly-scheduler/logs/
+
 # Private knowledge source lives outside this repo.
 llm-wiki/
 

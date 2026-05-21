@@ -181,6 +181,82 @@ def gate_r_contract_evidence(repo: Path) -> dict[str, Any]:
     }
 
 
+def obligation_ledger_evidence(repo: Path, *, require: bool) -> dict[str, Any]:
+    """Verify AO2 obligation ledgers when a run emits them.
+
+    This is the deterministic spec-delta closure loop: a provider may claim
+    DONE, but closure still fails if any durable MUST/rubric/content
+    obligation remains failed or unverified.
+    """
+    candidates = [
+        *repo.glob("run-artifacts/**/obligation-ledger.json"),
+        *repo.glob("docs/evaluations/**/*obligation*.json"),
+        *repo.glob(".ao2/**/obligation-ledger.json"),
+    ]
+    ledgers = sorted({path.resolve() for path in candidates})
+    details: list[str] = []
+    reports: list[dict[str, Any]] = []
+
+    if require and not ledgers:
+        details.append("required obligation ledger was not found")
+
+    for path in ledgers:
+        rel = path.relative_to(repo) if path.is_relative_to(repo) else path
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            details.append(f"{rel}: could not parse obligation ledger: {exc}")
+            continue
+        if isinstance(data.get("obligations"), list) and isinstance(data.get("source_contracts"), list):
+            try:
+                import obligation_ledger
+
+                data = obligation_ledger.check_ledger(data, repo)
+                obligation_ledger.write_ledger(path, data)
+            except Exception as exc:
+                details.append(f"{rel}: could not check obligation ledger: {exc}")
+                continue
+
+        schema = data.get("schema_version")
+        verdict = data.get("verdict")
+        summary = data.get("summary") if isinstance(data.get("summary"), dict) else {}
+        fail = _int_value(summary.get("fail"))
+        unverified = _int_value(summary.get("unverified"))
+        reports.append(
+            {
+                "path": str(rel),
+                "schema_version": schema,
+                "verdict": verdict,
+                "fail": fail,
+                "unverified": unverified,
+            }
+        )
+
+        if schema != "ao2.obligation-ledger.v1":
+            details.append(f"{rel}: schema_version must be ao2.obligation-ledger.v1")
+        if verdict != "accepted":
+            details.append(f"{rel}: verdict must be accepted")
+        if fail != 0:
+            details.append(f"{rel}: fail count must be 0, got {fail}")
+        if unverified != 0:
+            details.append(f"{rel}: unverified count must be 0, got {unverified}")
+
+    return {
+        "verdict": "FAIL" if details else "PASS",
+        "details": details,
+        "ledger_count": len(ledgers),
+        "reports": reports,
+    }
+
+
+def _int_value(value: Any) -> int:
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return 0
+
+
 def closure_commands(repo: Path, *, include_pytest: bool) -> list[list[str]]:
     commands: list[list[str]] = []
 
@@ -245,19 +321,11 @@ def run(
     timeout: int,
     dry_run: bool,
     extra: list[str],
+    require_obligation_ledger: bool = False,
 ) -> dict[str, Any]:
     commands = closure_commands(repo, include_pytest=include_pytest)
     for item in extra:
         commands.append(_portable_shell_args(item))
-
-    if not commands:
-        return {
-            "repo": str(repo),
-            "verdict": "WARN",
-            "commands": [],
-            "results": [],
-            "errors": ["no known closure commands found"],
-        }
 
     if dry_run:
         return {
@@ -268,6 +336,7 @@ def run(
             "errors": [],
         }
 
+    warning_errors = [] if commands else ["no known closure commands found"]
     results = [run_command(repo, command, timeout) for command in commands]
     errors = [
         "{} failed".format(" ".join(result["command"]))
@@ -284,14 +353,20 @@ def run(
     if gate_r_result["verdict"] == "FAIL":
         errors.extend(gate_r_result["details"])
 
+    obligation_result = obligation_ledger_evidence(repo, require=require_obligation_ledger)
+    if obligation_result["verdict"] == "FAIL":
+        errors.extend(obligation_result["details"])
+
+    verdict = "FAIL" if errors else ("WARN" if warning_errors else "PASS")
     return {
         "repo": str(repo),
-        "verdict": "PASS" if not errors else "FAIL",
+        "verdict": verdict,
         "commands": commands,
         "results": results,
-        "errors": errors,
+        "errors": [*warning_errors, *errors],
         "trigger_evidence": trigger_result,
         "gate_r_evidence": gate_r_result,
+        "obligation_ledger_evidence": obligation_result,
     }
 
 
@@ -315,6 +390,10 @@ def self_test() -> int:
         if expected not in parent_result["commands"]:
             print(json.dumps(parent_result, indent=2), file=sys.stderr)
             return 1
+        required = run(repo, include_pytest=False, timeout=10, dry_run=False, extra=[], require_obligation_ledger=True)
+        if required["verdict"] != "FAIL" or "required obligation ledger was not found" not in required["errors"]:
+            print(json.dumps(required, indent=2), file=sys.stderr)
+            return 1
     print("OK verify_closure self-test")
     return 0
 
@@ -328,6 +407,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--with-pytest", action="store_true", help="include python3 -m pytest -q")
     parser.add_argument("--timeout", type=int, default=120, help="per-command timeout seconds")
     parser.add_argument("--dry-run", action="store_true", help="print selected commands without running")
+    parser.add_argument(
+        "--require-obligation-ledger",
+        action="store_true",
+        help="fail closure when no AO2 obligation ledger is present",
+    )
     parser.add_argument(
         "--extra",
         action="append",
@@ -348,6 +432,7 @@ def main(argv: list[str] | None = None) -> int:
         timeout=args.timeout,
         dry_run=args.dry_run,
         extra=args.extra,
+        require_obligation_ledger=args.require_obligation_ledger,
     )
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True))

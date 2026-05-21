@@ -227,8 +227,7 @@ def test_write_live_evidence_pack_materializes_missing_deterministic_outputs(tmp
 
     materialized = (
         tmp_path
-        / "docs"
-        / "status"
+        / "run-artifacts"
         / "evidence-pack-live"
         / "deterministic-replay"
         / "report-writer"

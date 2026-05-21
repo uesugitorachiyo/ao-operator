@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.e2e.conftest import live_providers_only, run_factory
+from .conftest import live_providers_only, run_factory
 
 
 EVIDENCE_ROLES = (

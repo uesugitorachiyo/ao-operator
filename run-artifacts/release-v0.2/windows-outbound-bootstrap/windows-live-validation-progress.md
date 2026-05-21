@@ -9,9 +9,9 @@ Status: PASS - Windows outbound SSH tunnel and AO worker registration are proven
 Continue v0.2 W4 from `origin/main` without changing AO source or provider
 credentials:
 
-- read `docs/status/release-v0.2/LIVE-VALIDATION.md`
+- read `run-artifacts/release-v0.2/LIVE-VALIDATION.md`
 - execute the Windows side of
-  `docs/status/release-v0.2/windows-outbound-bootstrap/`
+  `run-artifacts/release-v0.2/windows-outbound-bootstrap/`
 - keep provider API-key paths out of the run
 - stop on live registration blockers
 
@@ -19,7 +19,7 @@ credentials:
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Factory checkout | PASS | `factory-v3` was on `main` at `a69609a5` before creating this evidence branch. |
+| Factory checkout | PASS | `ao-operator` was on `main` at `a69609a5` before creating this evidence branch. |
 | Forbidden provider API-key env vars | PASS | `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` were absent from the Windows process environment. |
 | AO Runtime freshness | PASS | Local `C:\workspace\ao-runtime` was fast-forwarded to `origin/main` at `b7b87a9`. |
 | Windows worker binary | PASS | `cargo build --release -p ao-cli --bin ao-worker` completed after adding the installed `protoc.exe` directory to `PATH`; `ao-worker.exe` was copied to `%USERPROFILE%\.cargo\bin\ao-worker.exe`. |

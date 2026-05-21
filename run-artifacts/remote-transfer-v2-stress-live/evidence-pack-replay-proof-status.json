@@ -1,0 +1,33 @@
+{
+  "deterministic_summary_count": 2,
+  "dispatch_authorized": false,
+  "errors": [],
+  "executed_deterministic_summary_count": 2,
+  "generated_at": "2026-05-12T00:55:40+00:00",
+  "live_providers_run": false,
+  "next_safe_command": "Evidence pack replay proof is ready for v0.7 release-readiness review.",
+  "proof_ready": true,
+  "schema": "ao-operator/evidence-pack-replay-proof-status/v1",
+  "summaries": [
+    {
+      "deterministic_command_execution": "PASS",
+      "deterministic_task_count": 1,
+      "path": "run-artifacts/deterministic-replay-live-proof/evidence-packs/evidence-pack-deterministicreplay01-summary.json",
+      "replay_verdict": "PASS",
+      "run_id": "deterministicreplay01",
+      "verdict": "PASS",
+      "verify_verdict": "PASS"
+    },
+    {
+      "deterministic_command_execution": "PASS",
+      "deterministic_task_count": 1,
+      "path": "run-artifacts/evidence-profile-live-proof/evidence-packs/evidence-pack-r-evidence-profile-live-proof-1778547122466255000-summary.json",
+      "replay_verdict": "PASS",
+      "run_id": "r-evidence-profile-live-proof-1778547122466255000",
+      "verdict": "PASS",
+      "verify_verdict": "PASS"
+    }
+  ],
+  "summary_count": 2,
+  "verdict": "PASS"
+}

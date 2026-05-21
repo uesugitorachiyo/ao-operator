@@ -1,8 +1,7 @@
-# AO Operator Private Release Runbook
+# AO Operator Operator Release Runbook
 
-Status: private release-train runbook
-Applies to: `ao-operator v0.7.0-private-ga`
-Compatibility labels retained for public release-gate tests: `ao-runtime v0.2.0-ga`, `ao-operator v0.7.0-ga`.
+Status: operator release-train runbook
+Applies to: `ao-operator v0.7.0-ga`
 
 This document is the operator-facing release guide for the private AO product
 train. It intentionally covers private installation, verification,
@@ -13,11 +12,11 @@ troubleshooting, security posture, and what the product does not claim.
 AO Operator is released as one member of the private AO train:
 
 ```text
-ao-runtime v0.2.0-private-ga
-ao-operator v0.7.0-private-ga
-ao-control-plane v0.1.0-private-ga
-financial-services-profile v0.1.0-private-ga
-secure-agent-profile v0.1.0-private-ga
+ao-runtime v0.2.0-ga
+ao-operator v0.7.0-ga
+ao-control-plane v0.1.0-ga
+financial-services-profile v0.1.0-ga
+secure-agent-profile v0.1.0-ga
 ```
 
 The strategy repository records train status and compatibility evidence:
@@ -70,23 +69,23 @@ Run the local scaffold and provider-auth checks:
 ```sh
 python3 scripts/validate_scaffold.py
 python3 scripts/factory_doctor.py
-python3 scripts/validate_factory.py --slug ao-operator-v0-7-private-ga-tagged --profile evidence --skip-repo-checks --allow-untracked-artifacts --allow-missing-final-evaluation
+python3 scripts/validate_factory.py --slug ao-operator-v0-7-ga-tagged --profile evidence --skip-repo-checks --allow-untracked-artifacts --allow-missing-final-evaluation
 ```
 
-Verify the signed private-GA tag:
+Verify the signed GA tag:
 
 ```sh
 git fetch --tags origin
-git tag -v v0.7.0-private-ga
+git tag -v v0.7.0-ga
 ```
 
-Verify the AO-backed private-GA evidence pack:
+Verify the AO-backed GA evidence pack:
 
 ```sh
 python3 scripts/factory_run.py replay \
-  docs/status/ao-operator-v0-7-private-ga-tagged/evidence-packs/evidence-pack-r-ao-operator-v0-7-private-ga-tagged-1778685620993228000.tar.zst \
-  --ed25519-public-key docs/status/ao-operator-v0-7-private-ga-tagged/evidence-packs/evidence-pack-r-ao-operator-v0-7-private-ga-tagged-1778685620993228000/signatures/pubkey \
-  --write-report /tmp/ao-operator-private-ga-replay.json
+  run-artifacts/ao-operator-v0-7-ga-tagged/evidence-packs/evidence-pack-r-ao-operator-v0-7-ga-tagged-1778685620993228000.tar.zst \
+  --ed25519-public-key run-artifacts/ao-operator-v0-7-ga-tagged/evidence-packs/evidence-pack-r-ao-operator-v0-7-ga-tagged-1778685620993228000/signatures/pubkey \
+  --write-report /tmp/ao-operator-ga-replay.json
 ```
 
 Expected replay verdict:
@@ -103,13 +102,13 @@ Cross-check the train gate in AO Control Plane when validating the full release:
 ```sh
 cd ../ao-control-plane
 .venv/bin/python -m ao_control_plane.cli train-gate \
-  --output .ao-control/release-train/private-ga-2026-05-13 \
+  --output .ao-control/release-train/ga-2026-05-13 \
   --require-target-tags \
   --verify-tag-signatures \
-  --ao-operator-run ../factory-v3/docs/status/ao-operator-v0-7-private-ga-tagged \
-  --secure-agent-run ../secure-agent-profile/runs/guarded-code-change-private-ga-tagged-20260513-v1 \
-  --financial-services-earnings-run ../financial-services-profile/runs/earnings-note-private-ga-tagged-20260513-v1 \
-  --financial-services-kyc-run ../financial-services-profile/runs/kyc-triage-private-ga-tagged-20260513-v1
+  --ao-operator-run ../ao-operator/run-artifacts/ao-operator-v0-7-ga-tagged \
+  --secure-agent-run ../secure-agent-profile/runs/guarded-code-change-ga-tagged-20260513-v1 \
+  --financial-services-earnings-run ../financial-services-profile/runs/earnings-note-ga-tagged-20260513-v1 \
+  --financial-services-kyc-run ../financial-services-profile/runs/kyc-triage-ga-tagged-20260513-v1
 ```
 
 ## Troubleshooting
@@ -196,7 +195,7 @@ signed replayable evidence for review.
 
 - [ ] Release train status reviewed in `ao-strategy`.
 - [ ] Signed target tags verified.
-- [ ] AO Operator private-GA pack replays.
+- [ ] AO Operator GA pack replays.
 - [ ] Provider API-key environment variables absent.
 - [ ] Runtime release package available on the host.
 - [ ] Windows lane proof is current.

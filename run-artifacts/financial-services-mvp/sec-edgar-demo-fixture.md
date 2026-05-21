@@ -20,16 +20,16 @@ body with a live EDGAR fetch while keeping the same manifest contract.
 |---|---|
 | `scripts/sec_edgar_public_source_pack.py` | Deterministic public SEC EDGAR source-pack shim. |
 | `scripts/run_financial_services_sec_edgar_demo.py` | Repeatable demo wiring: regenerates source pack, renders the `financial-services:earnings-note` dry-run artifacts, and writes demo status JSON/Markdown. |
-| `docs/status/financial-services-mvp/source-pack/sec-edgar/manifest.json` | Source-pack manifest, schema `factory-v3/sec-edgar-source-pack/v1`. |
-| `docs/status/financial-services-mvp/source-pack/sec-edgar/filing-summary.md` | Public EDGAR endpoint summary for the demo issuer. |
-| `docs/status/financial-services-mvp/source-pack/sec-edgar/metric-spans.json` | Citation-audit source anchors and metric tag names. |
+| `run-artifacts/financial-services-mvp/source-pack/sec-edgar/manifest.json` | Source-pack manifest, schema `ao-operator/sec-edgar-source-pack/v1`. |
+| `run-artifacts/financial-services-mvp/source-pack/sec-edgar/filing-summary.md` | Public EDGAR endpoint summary for the demo issuer. |
+| `run-artifacts/financial-services-mvp/source-pack/sec-edgar/metric-spans.json` | Citation-audit source anchors and metric tag names. |
 | `profiles/financial-services/earnings-note.json` | Fetch-filings role now points at the shim and manifest schema. |
 | `tests/test_sec_edgar_public_source_pack.py` | Focused tests for issuer resolution, deterministic pack output, fail-closed unsupported tickers, and profile wiring. |
 
 ## Manifest Summary
 
 ```text
-schema: factory-v3/sec-edgar-source-pack/v1
+schema: ao-operator/sec-edgar-source-pack/v1
 ticker: NVDA
 quarter: 2026Q1
 cik: 0001045810
@@ -48,7 +48,7 @@ Generated fixture:
 python3 scripts/sec_edgar_public_source_pack.py \
   --ticker NVDA \
   --quarter 2026Q1 \
-  --output-dir docs/status/financial-services-mvp/source-pack/sec-edgar
+  --output-dir run-artifacts/financial-services-mvp/source-pack/sec-edgar
 
 python3 scripts/run_financial_services_sec_edgar_demo.py \
   --ticker NVDA \

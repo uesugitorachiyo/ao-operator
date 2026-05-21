@@ -8,15 +8,15 @@ Runtime validation lane.
 
 ## Release Summary
 
-AO Operator v0.6 prepares `factory-v3` for public OSS launch. The release
-changes the public front door from internal `factory-v3` lifecycle artifacts to a
+AO Operator v0.6 prepares `ao-operator` for public OSS launch. The release
+changes the public front door from internal `ao-operator` lifecycle artifacts to a
 small-biz/local-first product surface:
 
 - AO Operator naming decision recorded.
 - Public README refreshed with hero asset, quickstart, starter profiles, and
   workflow-as-data examples.
 - OSS governance files added.
-- Private release/security/live evidence extracted from the public repo.
+- Operator release/security/live evidence extracted from the public repo.
 - `.factory/runspec.yaml` export/import added.
 - Starter profile library and example briefs added.
 - Spec-Kit-style aliases added.

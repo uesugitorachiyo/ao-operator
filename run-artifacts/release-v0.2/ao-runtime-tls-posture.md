@@ -10,7 +10,7 @@ v0.2 cross-host worker path.
 
 Record the AO Runtime security-thread completion that followed the v0.2 live
 worker validation. This status file tracks the `ao-runtime` commits that make
-the cross-host transport posture explicit and testable from Factory v3 docs.
+the cross-host transport posture explicit and testable from AO Operator docs.
 
 ## AO Runtime Baseline
 
@@ -82,7 +82,7 @@ bash scripts/release_preflight.sh
 rg -n "advertised-primary|expected-sha256|coordinator.wal_http.tls|Plain WAL HTTP remains loopback-only" docs deploy specs progress
 ```
 
-Factory v3 documentation verification for this status update:
+AO Operator documentation verification for this status update:
 
 ```bash
 python3 scripts/check_cross_host_tls_posture.py --json
@@ -94,7 +94,7 @@ git diff --check
 
 ## Remaining Work
 
-- Mac and Windows installed worker lanes are statically validated in Factory v3
+- Mac and Windows installed worker lanes are statically validated in AO Operator
   with `scripts/check_cross_host_tls_posture.py`. The Mac launchd path now also
   has native AO Runtime evidence in
   `progress/slice-reports/native_installed_worker_validation.md`; re-run live

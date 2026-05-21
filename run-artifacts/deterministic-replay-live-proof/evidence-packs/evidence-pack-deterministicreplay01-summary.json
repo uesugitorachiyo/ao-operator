@@ -15,7 +15,7 @@
         "command": [
           "python3",
           "-c",
-          "from pathlib import Path; Path('smoke-test-deterministic-replay.json').write_text('{\"schema\":\"factory-v3/smoke-test-deterministic-replay/v1\",\"verdict\":\"PASS\"}\\n', encoding='utf-8')"
+          "from pathlib import Path; Path('smoke-test-deterministic-replay.json').write_text('{\"schema\":\"ao-operator/smoke-test-deterministic-replay/v1\",\"verdict\":\"PASS\"}\\n', encoding='utf-8')"
         ],
         "outputs": [
           {

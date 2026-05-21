@@ -1,0 +1,28 @@
+{
+  "dispatch_authorized": false,
+  "errors": [],
+  "live_providers_run": false,
+  "schema": "ao-operator/live-evidence-pack-replay-gate/v1",
+  "summaries": [
+    {
+      "deterministic_command_execution": "PASS",
+      "deterministic_task_count": 1,
+      "path": "run-artifacts/deterministic-replay-live-proof/evidence-packs/evidence-pack-deterministicreplay01-summary.json",
+      "replay_verdict": "PASS",
+      "run_id": "deterministicreplay01",
+      "verdict": "PASS",
+      "verify_verdict": "PASS"
+    },
+    {
+      "deterministic_command_execution": "PASS",
+      "deterministic_task_count": 1,
+      "path": "run-artifacts/evidence-profile-live-proof/evidence-packs/evidence-pack-r-evidence-profile-live-proof-1778547122466255000-summary.json",
+      "replay_verdict": "PASS",
+      "run_id": "r-evidence-profile-live-proof-1778547122466255000",
+      "verdict": "PASS",
+      "verify_verdict": "PASS"
+    }
+  ],
+  "summary_count": 2,
+  "verdict": "PASS"
+}

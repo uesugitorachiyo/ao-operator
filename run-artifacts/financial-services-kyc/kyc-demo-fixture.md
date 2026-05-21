@@ -29,7 +29,7 @@ certification claim.
 ```sh
 python3 scripts/kyc_synthetic_source_pack.py \
   --case-id synthetic-kyc-001 \
-  --output-dir docs/status/financial-services-kyc/source-pack/kyc
+  --output-dir run-artifacts/financial-services-kyc/source-pack/kyc
 
 python3 scripts/run_financial_services_kyc_demo.py \
   --case-id synthetic-kyc-001 \
