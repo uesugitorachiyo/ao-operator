@@ -42,20 +42,15 @@ verdict=PASS
 
 ## Publish
 
-After the verifier passes, refresh the public working tree:
+After the verifier passes, publish through the guarded helper:
 
 ```sh
-python scripts/public_clean_export.py --target ../ao-public-repos/ao-operator
-cd ../ao-public-repos/ao-operator
-git status --short
-python scripts/check_public_release_security.py --json
-python scripts/check_evidence_pack_replay_proof_status.py
-python scripts/check_cross_host_tls_posture.py --json
-pytest -q
-git add -A
-git commit -m "chore: publish clean export from provenance"
-git push origin main
+python scripts/publish_public_clean_export.py --push
 ```
+
+The helper verifies a temporary export, syncs into the public git checkout
+without touching `.git`, re-runs the public gates in the real checkout, commits
+only when the public tree changed, and pushes only when `--push` is present.
 
 If any verification fails, fix the exporter or source artifact in this
 repository first, then regenerate the public tree.
