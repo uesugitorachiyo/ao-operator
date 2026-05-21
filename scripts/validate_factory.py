@@ -406,7 +406,9 @@ def check_contract(results: list[dict[str, str]], contract_path: Path | None) ->
 
 def runspec_prompt_targets_slug(body: str, *, slug: str, task_id: str) -> tuple[bool, str]:
     expected_prompt = f"run-artifacts/{slug}/prompts/{task_id}.md"
-    if expected_prompt in body.replace("\\", "/"):
+    legacy_prompt = f"docs/status/{slug}/prompts/{task_id}.md"
+    normalized_body = body.replace("\\", "/")
+    if expected_prompt in normalized_body or legacy_prompt in normalized_body:
         return True, expected_prompt
 
     task_marker = f"- id: {task_id}"
@@ -584,9 +586,12 @@ def add(results: list[dict[str, str]], check_id: str, ok: bool, message: str) ->
 
 def display_path(path: Path) -> str:
     try:
-        return str(path.relative_to(ROOT))
+        public_path = path.relative_to(ROOT).as_posix()
     except ValueError:
-        return str(path)
+        public_path = Path(path).as_posix()
+    if public_path.startswith("docs/status/"):
+        return "run-artifacts/" + public_path[len("docs/status/") :]
+    return public_path
 
 
 def git_tracking_available() -> bool:

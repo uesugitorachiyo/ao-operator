@@ -1,0 +1,73 @@
+{
+  "archive": "run-artifacts/deterministic-replay-live-proof/evidence-packs/evidence-pack-deterministicreplay01.tar.zst",
+  "pack": "run-artifacts/deterministic-replay-live-proof/evidence-packs/evidence-pack-deterministicreplay01",
+  "replay": {
+    "checks": {
+      "artifact_refs": "PASS",
+      "deterministic_command_execution": "PASS",
+      "deterministic_non_llm_replay": "PASS",
+      "event_task_coverage": "PASS",
+      "transcript_paths": "PASS",
+      "verification": "PASS"
+    },
+    "deterministic_executions": [
+      {
+        "command": [
+          "python3",
+          "-c",
+          "from pathlib import Path; Path('smoke-test-deterministic-replay.json').write_text('{\"schema\":\"factory-v3/smoke-test-deterministic-replay/v1\",\"verdict\":\"PASS\"}\\n', encoding='utf-8')"
+        ],
+        "outputs": [
+          {
+            "path": "smoke-test-deterministic-replay.json",
+            "sha256": "5aa4b5907ffa6f4ccba4b8bd34cf763e17c4130bf68b6047020989301bff2ee4",
+            "verdict": "PASS"
+          }
+        ],
+        "returncode": 0,
+        "stderr_tail": "",
+        "stdout_tail": "",
+        "task_id": "test-engineer",
+        "timeout_seconds": 2,
+        "verdict": "PASS"
+      }
+    ],
+    "deterministic_replay_note": "Validated 1 deterministic non-LLM task declaration(s): replay_command and replay_outputs are present, and declared outputs resolve to content-addressed artifacts. Provider/LLM calls are not replayed.",
+    "deterministic_task_count": 1,
+    "errors": [],
+    "event_count": 1,
+    "pack": "run-artifacts/deterministic-replay-live-proof/evidence-packs/evidence-pack-deterministicreplay01.tar.zst",
+    "run_id": "deterministicreplay01",
+    "schema": "ao-operator/evidence-pack-replay/v1",
+    "task_count": 1,
+    "verdict": "PASS",
+    "verify": {
+      "checks": {
+        "artifact_shas": "PASS",
+        "merkle_root": "PASS",
+        "signature": "PASS"
+      },
+      "errors": [],
+      "pack": "run-artifacts/deterministic-replay-live-proof/evidence-packs/evidence-pack-deterministicreplay01.tar.zst",
+      "run_id": "deterministicreplay01",
+      "schema": "ao-operator/evidence-pack-verify/v1",
+      "verdict": "PASS"
+    }
+  },
+  "run_id": "deterministicreplay01",
+  "schema": "ao-operator/evidence-pack-live-run/v1",
+  "signature_algo": "HMAC-SHA256",
+  "verdict": "PASS",
+  "verify": {
+    "checks": {
+      "artifact_shas": "PASS",
+      "merkle_root": "PASS",
+      "signature": "PASS"
+    },
+    "errors": [],
+    "pack": "run-artifacts/deterministic-replay-live-proof/evidence-packs/evidence-pack-deterministicreplay01.tar.zst",
+    "run_id": "deterministicreplay01",
+    "schema": "ao-operator/evidence-pack-verify/v1",
+    "verdict": "PASS"
+  }
+}

@@ -697,7 +697,10 @@ def rel(path: Path) -> str:
 
 
 def display_path(path: Path) -> str:
-    return rel(path) if path.is_absolute() else Path(path).as_posix()
+    public_path = rel(path) if path.is_absolute() else Path(path).as_posix()
+    if public_path.startswith("docs/status/"):
+        return "run-artifacts/" + public_path[len("docs/status/") :]
+    return public_path
 
 
 def normalize_generated_text(body: str) -> str:
@@ -3010,9 +3013,12 @@ def materialize_deterministic_replay_outputs(
     the pack self-contained without trusting provider-authored files.
     """
     status = paths.get("status")
-    if not status:
-        return {}
-    replay_root = status.parent / "deterministic-replay"
+    if status:
+        slug = status.parent.name
+    else:
+        evidence_packs_dir = paths.get("evidence_packs_dir")
+        slug = evidence_packs_dir.parent.name if evidence_packs_dir else "deterministic-replay"
+    replay_root = ROOT / "docs" / "status" / slug / "deterministic-replay"
     artifacts: dict[str, list[Path]] = {}
     for task in tasks:
         if task.get("deterministic") is not True:

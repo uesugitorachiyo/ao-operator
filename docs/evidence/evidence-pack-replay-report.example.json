@@ -1,0 +1,30 @@
+{
+  "checks": {
+    "artifact_refs": "PASS",
+    "deterministic_non_llm_replay": "PASS",
+    "event_task_coverage": "PASS",
+    "transcript_paths": "PASS",
+    "verification": "PASS"
+  },
+  "deterministic_replay_note": "Validated 1 deterministic non-LLM task declaration(s): replay_command and replay_outputs are present, and declared outputs resolve to content-addressed artifacts. Provider/LLM calls are not replayed.",
+  "deterministic_task_count": 1,
+  "errors": [],
+  "event_count": 2,
+  "pack": "docs/status/live-bug-fix/evidence-packs/evidence-pack-0123456789abcdef.tar.zst",
+  "run_id": "0123456789abcdef",
+  "schema": "ao-operator/evidence-pack-replay/v1",
+  "task_count": 1,
+  "verdict": "PASS",
+  "verify": {
+    "checks": {
+      "artifact_shas": "PASS",
+      "merkle_root": "PASS",
+      "signature": "PASS"
+    },
+    "errors": [],
+    "pack": "docs/status/live-bug-fix/evidence-packs/evidence-pack-0123456789abcdef.tar.zst",
+    "run_id": "0123456789abcdef",
+    "schema": "ao-operator/evidence-pack-verify/v1",
+    "verdict": "PASS"
+  }
+}
