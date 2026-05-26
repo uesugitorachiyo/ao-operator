@@ -735,12 +735,14 @@ AO Operator resolves each role's provider from `.env`. Valid values are:
 ```text
 codex
 claude
+antigravity
 ```
 
 Authentication must use local OAuth/subscription CLI login:
 
 - `codex`: Codex CLI auth
 - `claude`: Claude Code CLI auth
+- `antigravity`: Google Antigravity CLI (`agy`) OAuth login
 
 `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and provider API-key auth paths are
 forbidden for this project.
