@@ -18,12 +18,13 @@ DEFAULT_RUNSPEC = "ao/runspecs/agent-os-phase-draft.yaml"
 DEFAULT_STATE_BASELINE = "run-artifacts/remote-transfer-v2-stress-live/agent-os-router-v2-state.json"
 PROMPT_DIR = "ao/prompts/agent-os-phase"
 POLICY_PROFILE = "ao/policy/local-dev.yaml"
-VALID_PROVIDERS = {"codex", "claude"}
+VALID_PROVIDERS = {"codex", "claude", "antigravity"}
 STATE_SCHEMA_V2 = "ao-operator/agent-os-state/v2"
 ROLE_GRAPH_SCHEMA = "ao-operator/agent-os-role-graph/v1"
 PROVIDER_AGENTS = {
     "codex": "codex-default",
     "claude": "claude-default",
+    "antigravity": "antigravity-default",
 }
 ROLE_PROVIDER_KEYS = {
     "planner": "FACTORY_V3_PLANNER_PROVIDER",

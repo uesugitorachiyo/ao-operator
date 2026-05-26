@@ -1,0 +1,5 @@
+name = "intake"
+description = "Captures and classifies raw user intent into a AO Operator RunSpec input."
+inputs = ["user intent", "ambient repository context", "operator priority"]
+outputs = ["intake brief", "initial classification", "operator-visible scope"]
+status_required = true

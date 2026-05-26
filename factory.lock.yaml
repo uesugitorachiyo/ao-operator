@@ -19,6 +19,7 @@
     }
   },
   "providers": {
+    "antigravity": "agy 1.0.2",
     "claude": "2.1.138 (Claude Code)",
     "codex": "codex-cli 0.130.0"
   },

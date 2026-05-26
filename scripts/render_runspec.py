@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VALID_PROVIDERS = {"claude", "codex"}
+VALID_PROVIDERS = {"claude", "codex", "antigravity"}
 
 TASKS = [
     ("planner-intake", "FACTORY_V3_PLANNER_PROVIDER", "ao/prompts/planner-intake.md", []),

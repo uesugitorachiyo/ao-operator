@@ -28,7 +28,7 @@ ROLES = {
     "evaluator-closer": "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
 }
 
-VALID_PROVIDERS = {"claude", "codex"}
+VALID_PROVIDERS = {"claude", "codex", "antigravity"}
 FORBIDDEN_ENV = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
 
 
@@ -133,8 +133,13 @@ def run_checks(env_arg: str | None = None) -> list[dict[str, str]]:
             f"{role} provider={value} from {source}",
         )
 
+    PROVIDER_BINARIES = {
+        "codex": "codex",
+        "claude": "claude",
+        "antigravity": "agy",
+    }
     for provider in sorted(set(selected.values())):
-        binary = "codex" if provider == "codex" else "claude"
+        binary = PROVIDER_BINARIES.get(provider, provider)
         found = shutil.which(binary)
         add(
             results,
@@ -200,6 +205,30 @@ def run_checks(env_arg: str | None = None) -> list[dict[str, str]]:
             "provider.claude_live_status",
             True,
             "No active Claude live tasks selected",
+        )
+
+    if "antigravity" in selected.values():
+        agy_settings = Path.home() / ".gemini" / "antigravity-cli" / "settings.json"
+        add(
+            results,
+            "auth.antigravity",
+            agy_settings.is_file(),
+            f"Antigravity CLI settings present at {agy_settings}"
+            if agy_settings.is_file()
+            else "Antigravity CLI not initialized — run /Applications/Antigravity.app once, then `agy --help`",
+        )
+        add(
+            results,
+            "provider.antigravity_live_status",
+            True,
+            "AO Operator resolves antigravity from .env and dispatches provider: antigravity through AO Runtime; requires `agy` CLI auth and an AO binary built with antigravity adapter support (see ao-runtime crates/ao-daemon/src/adapter.rs)",
+        )
+    else:
+        add(
+            results,
+            "provider.antigravity_live_status",
+            True,
+            "No active antigravity live tasks selected",
         )
 
     return results

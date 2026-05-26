@@ -28,7 +28,7 @@ import obligation_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 AO_RUNTIME_DEFAULT = (ROOT / ".." / "ao-runtime").resolve()
-VALID_PROVIDERS = {"claude", "codex"}
+VALID_PROVIDERS = {"claude", "codex", "antigravity"}
 FORBIDDEN_ENV = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY")
 MAX_INJECTED_ARTIFACT_CHARS = 12000
 WORKTREE_ROOT_ENV = "FACTORY_V3_WORKTREE_ROOT"
@@ -505,7 +505,7 @@ def extract_scoped_writes(brief: str) -> list[str]:
 def build_acceptance(shape: str) -> list[str]:
     base = [
         "AO Operator generates a complete spec, hardened plan, status log, materialized prompts, RunSpec, and evaluation artifact.",
-        "Provider selection resolves only to codex or claude and never requires provider API keys.",
+        "Provider selection resolves only to codex, claude, or antigravity and never requires provider API keys.",
         "AO execution evidence is captured durably when live mode is used.",
     ]
     if shape == "greenfield":
@@ -825,7 +825,7 @@ Generated: {datetime.now(timezone.utc).isoformat()}
 - Do not read secrets.
 - Do not emit raw environment dumps.
 - Do not include full transcripts in downstream prompts.
-- Do not substitute Codex for Claude or Claude for Codex.
+- Do not substitute one resolved provider for another during live execution.
 
 ## Verification
 
@@ -895,7 +895,7 @@ only the current artifact paths and scoped summaries needed for its work.
 
 ## Verification Gates
 
-- Provider env must resolve to codex or claude.
+- Provider env must resolve to codex, claude, or antigravity.
 - Forbidden provider API-key env vars must be absent.
 - Shape gate must pass before mutator dispatch.
 - AO completion must be followed by evaluator acceptance.
@@ -2167,7 +2167,7 @@ def sync_factory_helper_scripts_to_workspace_root(workspace_root: Path) -> None:
 
 
 def sync_agent_manifests_to(target: Path) -> None:
-    for tool_dir in [".codex", ".claude"]:
+    for tool_dir in [".codex", ".claude", ".antigravity"]:
         source = ROOT / tool_dir / "agents"
         if not source.is_dir():
             continue

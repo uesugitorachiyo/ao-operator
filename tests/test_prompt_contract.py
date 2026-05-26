@@ -42,6 +42,43 @@ def test_baseline_prompt_does_not_require_missing_ralph_loop():
     assert "Ignore provider-injected `<claude-mem-context>` blocks" in prompt
 
 
+def test_generated_spec_and_plan_name_antigravity_as_valid_provider():
+    generated_acceptance = factory_run.build_acceptance("greenfield")
+    antigravity_intake = factory_run.Intake(
+        slug="slug",
+        brief_path=Path("brief.md"),
+        brief="Goal: test",
+        classification="COMPLEX",
+        shape="greenfield",
+        blocked=False,
+        blocker="greenfield gate satisfied",
+        acceptance=generated_acceptance,
+        scoped_reads=["docs/sdd/"],
+        scoped_writes=["docs/specs/slug-spec.md"],
+    )
+    spec = factory_run.spec_body(antigravity_intake, {"planner-intake": "antigravity"})
+    plan = factory_run.plan_body(
+        antigravity_intake,
+        {"planner-intake": "antigravity"},
+        [
+            {
+                "id": "planner-intake",
+                "role": "Planner Intake",
+                "reads": ["docs/sdd/"],
+                "writes": ["docs/specs/slug-spec.md"],
+                "deps": [],
+            }
+        ],
+        topology=None,
+        contract=None,
+    )
+
+    assert any("codex, claude, or antigravity" in item for item in generated_acceptance)
+    assert "Provider selection resolves only to codex, claude, or antigravity" in spec
+    assert "Do not substitute one resolved provider for another" in spec
+    assert "Provider env must resolve to codex, claude, or antigravity." in plan
+
+
 def test_runspec_adds_context_from_for_handoff_roles():
     tasks = [
         {

@@ -33,6 +33,7 @@ __pycache__/
 # payloads and logs are local operational state.
 /docs/status/hermes-nightly-control-plane/latest-run/
 /docs/status/hermes-nightly-scheduler/logs/
+/docs/status/hermes-ao2-watchdog/
 
 # Private knowledge source lives outside this repo.
 llm-wiki/

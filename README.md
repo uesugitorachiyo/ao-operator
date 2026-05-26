@@ -247,6 +247,11 @@ python3 scripts/hermes_ao_bridge.py publish-memory --export .ao2/hermes-memory.j
 python3 scripts/hermes_ao_bridge.py provider-registry --ao2-target ../ao2 --json
 python3 scripts/hermes_ao_bridge.py publish-provider-registry --ao2-target ../ao2 --control-plane-url http://127.0.0.1:8744 --api-token "$AO2_CP_API_TOKEN" --json
 python3 scripts/hermes_ao_bridge.py publish-provider-registry --ao2-target ../ao2 --control-plane-url http://127.0.0.1:8744 --api-token "$AO2_CP_API_TOKEN" --signing-key ../ao2/.release-signing/ao2-release-signing-key.pem --signer-id ao2-provider-registry --json
+python3 scripts/hermes_ao_bridge.py publish-provider-acceptance --acceptance ../ao2/target/provider-pilot-acceptance/<tag>/codex/provider-pilot-acceptance.json --control-plane-url http://127.0.0.1:8744 --api-token "$AO2_CP_API_TOKEN" --json
+python3 scripts/hermes_ao_bridge.py publish-release-publication --publication ../ao2/run-artifacts/release-candidates/v0.4.79-phase1-release.json --control-plane-url http://127.0.0.1:8744 --api-token "$AO2_CP_API_TOKEN" --json
+python3 scripts/hermes_ao_bridge.py phase1-promotion-status --ao2-target ../ao2 --control-plane-url http://127.0.0.1:8744 --api-token-env AO2_CP_API_TOKEN --json
+python3 scripts/hermes_ao_bridge.py route-index-status --control-plane-url http://127.0.0.1:8744 --api-token-env AO2_CP_API_TOKEN --json
+python3 scripts/hermes_ao_bridge.py release-readiness-status --control-plane-url http://127.0.0.1:8744 --api-token-env AO2_CP_API_TOKEN --json
 ```
 
 The bridge emits `ao-operator/hermes-ao-bridge/v1` and shells out only to the
@@ -261,13 +266,50 @@ gates without parsing docs or receiving direct provider execution authority.
 `ao2-control-plane` with token redaction in bridge artifacts. When
 `--signing-key` is provided, the bridge asks AO2 to use the signed registry
 endpoint so the control plane can verify and display producer trust.
+`publish-provider-acceptance` posts an already-created Codex or Claude
+provider-pilot acceptance bundle to `ao2-control-plane` and then fetches the
+acceptance dashboard snapshot. It does not start providers or promote a run;
+AO2 remains the owner of provider execution and signed evidence.
+`publish-release-publication` posts an AO2-owned
+`ao2.release-publication-summary.v1` artifact after a governed release ship and
+then fetches the release-publication dashboard snapshot. It keeps the bearer
+token out of stdout artifacts and lets Hermes/open front ends observe release
+provenance, rollback status, and archive health without approving the release.
+`phase1-promotion-status` asks AO2 to fetch the read-only Phase 1 promotion
+history from `ao2-control-plane`, then returns a compact operator status with
+checklist, signed decision, signature, three-OS, dashboard, history, and gap
+links for Hermes TUI/front-end views. It uses `--api-token-env` so the token
+stays in the environment rather than command arguments.
+`route-index-status` fetches the observer-only
+`/api/v1/control-plane/routes.json` discovery catalog and emits compact Hermes
+status for route count, portable/download surfaces, observer-storage mutations,
+and trust-boundary invariants. It fails the discovery status if credentials are
+advertised in URLs, any route mutates AO artifacts, or the control plane claims
+release-approval authority.
+`release-readiness-status` fetches the observer-only
+`/api/v1/release/readiness.json` verdict and emits a compact Hermes status with
+gate counts, blocker counts, evaluator/closer ownership, and readiness links.
+It does not approve releases; the Factory evaluator/closer remains the release
+acceptance owner.
+`release-support-bundle-status` fetches the portable
+`/api/v1/release/support-bundle.json` observer bundle and summarizes the
+embedded same-candidate release assembly manifest for Hermes/front-end review.
+The nightly advancement flow captures this bundle before evaluator closure and
+refreshes it again after evaluator-decision publication, so operators can see
+whether the final observer bundle includes the newly published closure record.
+`scripts/ao2_release_evaluator_decision.py` consumes the Hermes
+`release-readiness-status` artifact, the Hermes `release-support-bundle-status`
+artifact, and the factory `release-handoff-checklist` artifact, then writes
+`ao-operator/ao2-release-evaluator-decision/v1`. This is the AO Operator
+evaluator-closer closure record for the release line; it still does not give
+`ao2-control-plane` approval authority.
 
 Hermes can also start and inspect a governed AO2 run through the same bridge
 without taking over AO2 policy or evidence decisions:
 
 ```bash
 python3 scripts/hermes_ao_bridge.py governed-run \
-  --workflow default \
+  --template bug-fix \
   --ao2-target ../ao2 \
   --run-id hermes-demo-run \
   --provider codex \
@@ -411,6 +453,27 @@ python3 scripts/hermes_nightly_ao2_advancement.py \
 Use `--dry-run` first to inspect the exact AO2, control-plane, provider-registry
 snapshot, midpoint gate, bridge-smoke, closure gate, and gap-mining work that
 cron will execute.
+
+For a Phase 1 promotion-style dry run, require both provider-readiness observer
+publish and already-recorded provider-pilot acceptance evidence. This still does
+not start live providers. If `--provider-acceptance-bundle` is omitted, the
+nightly scans `../ao2/target/provider-pilot-acceptance` for the newest passed
+Codex and Claude `provider-pilot-acceptance.json` bundles. For the final Phase 1
+promotion gate, add `--require-provider-acceptance-source live` so copied
+fixtures or demo bundles cannot satisfy the publish requirement:
+
+```bash
+python3 scripts/hermes_nightly_ao2_advancement.py \
+  --ao2-root ../ao2 \
+  --ao2-control-plane ../ao2-control-plane \
+  --ao-runtime ../ao-runtime \
+  --provider-acceptance-bundle ../ao2/target/provider-pilot-acceptance/<tag>/codex/provider-pilot-acceptance.json \
+  --require-provider-readiness-publish \
+  --require-provider-acceptance-publish \
+  --require-provider-acceptance-source live \
+  --require-remotes \
+  --json
+```
 
 Generate guarded scheduler templates for all three host families:
 

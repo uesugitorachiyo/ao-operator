@@ -7,17 +7,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import check_agent_os_runspec_provider_boundary_matrix
 
 
-def test_runspec_provider_boundary_matrix_covers_codex_claude_mixed_and_refusal(tmp_path):
+def test_runspec_provider_boundary_matrix_covers_codex_claude_antigravity_mixed_and_refusal(tmp_path):
     payload = check_agent_os_runspec_provider_boundary_matrix.build_matrix(root=tmp_path)
 
     assert payload["schema"] == "ao-operator/agent-os-runspec-provider-boundary-matrix/v1"
     assert payload["verdict"] == "PASS"
-    assert payload["case_count"] == 4
+    assert payload["case_count"] == 5
     assert payload["dispatch_authorized"] is False
     assert payload["live_providers_run"] is False
     by_id = {case["id"]: case for case in payload["cases"]}
     assert by_id["codex_only"]["provider_set"] == ["codex"]
     assert by_id["claude_only"]["provider_set"] == ["claude"]
+    assert by_id["antigravity_only"]["provider_set"] == ["antigravity"]
+    assert by_id["antigravity_only"]["profile_path"] == "examples/provider-profiles/all-antigravity.env"
+    assert by_id["antigravity_only"]["yaml_verified"] is True
+    assert by_id["antigravity_only"]["yaml_provider_set"] == ["antigravity"]
     assert by_id["mixed_profile"]["provider_set"] == ["claude", "codex"]
     assert by_id["mixed_profile"]["profile_path"] == "examples/provider-profiles/mixed-throughput.env"
     assert by_id["mixed_profile"]["yaml_verified"] is True
@@ -42,5 +46,5 @@ def test_runspec_provider_boundary_matrix_cli_writes_output(tmp_path):
 
     saved = json.loads(output.read_text(encoding="utf-8"))
     assert code == 0
-    assert saved["case_count"] == 4
+    assert saved["case_count"] == 5
     assert saved["verdict"] == "PASS"

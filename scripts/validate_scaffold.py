@@ -111,7 +111,7 @@ REQUIRED_ENV_KEYS = [
     "FACTORY_V3_EVALUATOR_CLOSER_PROVIDER",
 ]
 
-VALID_PROVIDERS = {"claude", "codex"}
+VALID_PROVIDERS = {"claude", "codex", "antigravity"}
 
 
 def parse_env(path: Path) -> dict[str, str]:

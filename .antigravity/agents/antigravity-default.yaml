@@ -1,0 +1,19 @@
+apiVersion: ao.dev/v1
+kind: AgentManifest
+metadata:
+  name: antigravity-default
+  description: Default Google Antigravity (agy) CLI manifest for AO Operator bounded workspace runs.
+spec:
+  capabilities:
+    - code-read
+    - code-write
+    - shell
+  transport: cli
+  command:
+    - agy
+    - --print
+    - --sandbox
+    - --print-timeout
+    - 5m
+    - --dangerously-skip-permissions
+  timeoutMs: 360000

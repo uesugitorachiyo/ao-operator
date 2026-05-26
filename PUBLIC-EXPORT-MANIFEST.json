@@ -1,11 +1,11 @@
 {
   "blocked_patterns": [],
-  "copied_files": 828,
-  "generated_at": "2026-05-21T17:32:25+00:00",
+  "copied_files": 880,
+  "generated_at": "2026-05-26T19:27:19+00:00",
   "public_commit_identity": "AO Runtime <270548076+uesugitorachiyo@users.noreply.github.com>",
   "public_repo": "ao-operator",
   "schema": "ao-operator/public-clean-export/v1",
-  "skipped_files": 3158,
+  "skipped_files": 5023,
   "source_repo": "redacted-private-provenance",
   "verdict": "PASS"
 }

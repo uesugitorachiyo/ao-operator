@@ -59,6 +59,27 @@ On Windows, use `python` or the current interpreter path for local commands.
 The runner resolves internal Python subprocesses from `sys.executable`, with
 `FACTORY_V3_PYTHON` available as an explicit override when needed.
 
+To sync and rerun the exact Windows portability regression slice that guards
+gate subprocess execution and path redaction, run:
+
+```powershell
+python scripts/windows_validation_rerun.py --remote origin --branch main --json
+```
+
+If the checkout is already synced and you only want to rerun the validation
+slice, skip the pull step:
+
+```powershell
+python scripts/windows_validation_rerun.py --no-pull --json
+```
+
+The helper writes the latest machine-readable and Markdown reports to:
+
+```text
+run-artifacts/windows-validation-rerun/latest.json
+run-artifacts/windows-validation-rerun/latest.md
+```
+
 ## Provider Auth
 
 Use local CLI OAuth only.

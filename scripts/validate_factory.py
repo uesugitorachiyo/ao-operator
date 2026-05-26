@@ -13,7 +13,7 @@ import factory_profiles
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VALID_PROVIDERS = {"claude", "codex"}
+VALID_PROVIDERS = {"claude", "codex", "antigravity"}
 
 SDD_FILES = [
     "docs/sdd/README.md",

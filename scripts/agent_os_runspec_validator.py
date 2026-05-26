@@ -14,7 +14,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RENDERER_REPORT = "run-artifacts/remote-transfer-v2-stress-live/agent-os-runspec-renderer.json"
 DEFAULT_OUTPUT = "run-artifacts/remote-transfer-v2-stress-live/agent-os-runspec-validation.json"
-VALID_PROVIDERS = {"codex", "claude"}
+VALID_PROVIDERS = {"codex", "claude", "antigravity"}
 ROLE_PROVIDER_KEYS = {
     "planner": "FACTORY_V3_PLANNER_PROVIDER",
     "spec-forge": "FACTORY_V3_SPEC_FORGE_PROVIDER",

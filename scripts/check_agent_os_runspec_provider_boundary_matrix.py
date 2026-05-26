@@ -15,7 +15,7 @@ import agent_os_runspec_renderer
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = "run-artifacts/remote-transfer-v2-stress-live/agent-os-runspec-provider-boundary-matrix.json"
-VALID_PROVIDERS = {"codex", "claude"}
+VALID_PROVIDERS = {"codex", "claude", "antigravity"}
 ROLE_PROVIDER_KEYS = {
     "planner": "FACTORY_V3_PLANNER_PROVIDER",
     "spec-forge": "FACTORY_V3_SPEC_FORGE_PROVIDER",
@@ -149,7 +149,7 @@ def validate_case(
         providers.append(provider)
         expected = provider_for(env, role) if role in ROLE_PROVIDER_KEYS else ""
         if provider not in VALID_PROVIDERS:
-            errors.append(f"provider for {role} must be codex or claude")
+            errors.append(f"provider for {role} must be codex, claude, or antigravity")
         if expected and provider != expected:
             errors.append(f"provider mismatch for {role}: expected {expected}, got {provider}")
         if spec.get("agent") != f"{provider}-default":
@@ -178,6 +178,7 @@ def build_matrix(*, root: Path = ROOT) -> dict[str, Any]:
     profile_paths = {
         "codex_only": "examples/provider-profiles/all-codex.env",
         "claude_only": "examples/provider-profiles/all-claude.env",
+        "antigravity_only": "examples/provider-profiles/all-antigravity.env",
         "mixed_profile": "examples/provider-profiles/mixed-throughput.env",
     }
     profiles = {
@@ -196,6 +197,12 @@ def build_matrix(*, root: Path = ROOT) -> dict[str, Any]:
         renderer_fixture(profiles["claude_only"]),
         profile_path=profile_paths["claude_only"],
     )
+    antigravity_case = validate_case(
+        "antigravity_only",
+        profiles["antigravity_only"],
+        renderer_fixture(profiles["antigravity_only"]),
+        profile_path=profile_paths["antigravity_only"],
+    )
     mixed_case = validate_case(
         "mixed_profile",
         profiles["mixed_profile"],
@@ -210,7 +217,7 @@ def build_matrix(*, root: Path = ROOT) -> dict[str, Any]:
         profile_path=profile_paths["claude_only"],
         expect_pass=False,
     )
-    cases = [codex_case, claude_case, mixed_case, refusal_case]
+    cases = [codex_case, claude_case, antigravity_case, mixed_case, refusal_case]
 
     errors: list[str] = []
     for case in cases:

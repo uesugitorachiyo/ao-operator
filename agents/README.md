@@ -5,6 +5,7 @@ to `claude` or `codex` at RunSpec render time.
 
 Core roles:
 
+- intake
 - planner
 - plan-hardener
 - factory-manager

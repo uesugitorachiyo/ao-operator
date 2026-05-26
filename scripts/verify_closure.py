@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import shlex
+import shutil
 from pathlib import Path
 import re
 import subprocess
@@ -14,6 +15,20 @@ import sys
 import tempfile
 import time
 from typing import Any
+
+
+# Phase 2 exit-gate item #4 wiring. The AO2 native evaluator decision is
+# written by `ao2 factory evaluator-decision`; the verification artifact is
+# emitted by `ao2 factory verify-evaluator-decision --decision <path> --json`.
+# When closure consults the AO2 verdict, only the verifier's view is
+# load-bearing — ao-operator must never re-derive the verdict from the raw
+# decision JSON itself, so AO2 stays the closure authority.
+AO2_NATIVE_EVALUATOR_DECISION_SCHEMA = "ao2.ao-operator-compat-native-evaluator-result.v1"
+AO2_NATIVE_EVALUATOR_VERIFICATION_SCHEMA = (
+    "ao2.ao-operator-compat-native-evaluator-verification.v1"
+)
+AO2_NATIVE_EVALUATOR_VERIFICATION_OWNER = "ao2-native-evaluator-decision-verifier"
+AO2_NATIVE_EVALUATOR_FACTORY_V3_ROLE = "parity_oracle_only"
 
 
 def _command_exists(repo: Path, relative: str) -> bool:
@@ -249,6 +264,252 @@ def obligation_ledger_evidence(repo: Path, *, require: bool) -> dict[str, Any]:
     }
 
 
+def _find_ao2_binary(repo: Path) -> str | None:
+    """Locate the ao2 binary closure should call for AO2 verdict subsumption.
+
+    Honors the explicit ``AO2_BINARY`` / ``AO2_BIN`` env overrides first, then
+    looks for a release/debug binary inside an adjacent ``ao2`` checkout
+    (the standard local layout where ao-operator and ao2 sit side by side),
+    then falls back to ``shutil.which("ao2")`` for an installed binary.
+    """
+    for env_key in ("AO2_BINARY", "AO2_BIN"):
+        override = os.environ.get(env_key)
+        if override and Path(override).is_file():
+            return override
+    repo_resolved = repo.resolve()
+    sibling = repo_resolved.parent / "ao2"
+    for relative in ("target/release/ao2", "target/debug/ao2"):
+        candidate = sibling / relative
+        if candidate.is_file():
+            return str(candidate)
+    discovered = shutil.which("ao2")
+    return discovered
+
+
+def _check_ao2_native_evaluator_verification(payload: dict[str, Any]) -> list[str]:
+    """Return a list of detail strings explaining why a verification is unsafe.
+
+    Empty list means the verification is acceptable: the AO2 native evaluator
+    decision is signed, signature-verified end-to-end, the trust boundary is
+    intact, and the verifier identifies itself as the AO2-owned decision
+    verifier with ao-operator in the parity-oracle role. Anything else is a
+    closure-blocking detail.
+    """
+    details: list[str] = []
+    if not isinstance(payload, dict):
+        return ["AO2 verifier returned a non-object JSON value"]
+    if payload.get("schema_version") != AO2_NATIVE_EVALUATOR_VERIFICATION_SCHEMA:
+        details.append(
+            "verification schema_version must be "
+            f"{AO2_NATIVE_EVALUATOR_VERIFICATION_SCHEMA!r}, got "
+            f"{payload.get('schema_version')!r}"
+        )
+    if payload.get("status") != "accepted":
+        details.append(
+            f"verification status must be 'accepted', got {payload.get('status')!r}"
+        )
+    if payload.get("signature_status") != "signed":
+        details.append(
+            f"signature_status must be 'signed', got {payload.get('signature_status')!r}"
+        )
+    for flag in (
+        "signature_verified",
+        "signature_digest_match",
+        "public_key_digest_match",
+        "signed_payload_digest_match",
+        "decision_payload_matches_signed_payload",
+        "signature_requirement_satisfied",
+        "trust_boundary_ok",
+    ):
+        if payload.get(flag) is not True:
+            details.append(f"{flag} must be true, got {payload.get(flag)!r}")
+    if payload.get("ao2_decision_owner") != AO2_NATIVE_EVALUATOR_VERIFICATION_OWNER:
+        details.append(
+            "ao2_decision_owner must be "
+            f"{AO2_NATIVE_EVALUATOR_VERIFICATION_OWNER!r}, got "
+            f"{payload.get('ao2_decision_owner')!r}"
+        )
+    if payload.get("factory_v3_role") != AO2_NATIVE_EVALUATOR_FACTORY_V3_ROLE:
+        details.append(
+            "factory_v3_role must be "
+            f"{AO2_NATIVE_EVALUATOR_FACTORY_V3_ROLE!r}, got "
+            f"{payload.get('factory_v3_role')!r}"
+        )
+    return details
+
+
+def _run_ao2_evaluator_decision_verifier(
+    ao2_binary: str, decision_path: Path, timeout: int
+) -> tuple[dict[str, Any] | None, list[str]]:
+    """Subprocess-call ``ao2 factory verify-evaluator-decision --json``."""
+    argv = [
+        ao2_binary,
+        "factory",
+        "verify-evaluator-decision",
+        "--decision",
+        str(decision_path),
+        "--json",
+    ]
+    try:
+        completed = subprocess.run(
+            argv,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=timeout,
+        )
+    except FileNotFoundError:
+        return None, [f"ao2 binary {ao2_binary!r} could not be executed"]
+    except subprocess.TimeoutExpired:
+        return None, [
+            f"ao2 factory verify-evaluator-decision timed out after {timeout}s"
+        ]
+    if completed.returncode != 0:
+        stderr_tail = (completed.stderr or "").strip()[-512:]
+        return None, [
+            "ao2 factory verify-evaluator-decision exited "
+            f"{completed.returncode}: {stderr_tail or '<no stderr>'}"
+        ]
+    stdout = (completed.stdout or "").strip()
+    if not stdout:
+        return None, ["ao2 factory verify-evaluator-decision produced no stdout JSON"]
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        return None, [f"ao2 factory verify-evaluator-decision returned invalid JSON: {exc}"]
+    return payload, []
+
+
+def _discover_ao2_native_evaluator_decisions(repo: Path) -> list[Path]:
+    """Find checked-in AO2 native evaluator decision JSONs in the repo.
+
+    Excludes ``*.signed-payload.json`` sidecars (those are the bytes the
+    signature was computed over — they are not a decision file).
+    """
+    candidates: list[Path] = []
+    for pattern in (
+        "run-artifacts/**/ao2-native-evaluator-decision.json",
+        "run-artifacts/**/release-ao2-native-evaluator-decision.json",
+        "run-artifacts/**/*-ao2-native-evaluator-decision.json",
+        "docs/evaluations/**/ao2-native-evaluator-decision.json",
+        ".ao2/**/ao2-native-evaluator-decision.json",
+    ):
+        candidates.extend(repo.glob(pattern))
+    decisions: set[Path] = set()
+    for path in candidates:
+        if path.name.endswith(".signed-payload.json"):
+            continue
+        decisions.add(path.resolve())
+    return sorted(decisions)
+
+
+def ao2_evaluator_decision_evidence(
+    repo: Path,
+    *,
+    require: bool,
+    ao2_binary: str | None = None,
+    timeout: int = 60,
+) -> dict[str, Any]:
+    """Defer closure to AO2's native evaluator-decision verifier verdict.
+
+    Phase 2 exit-gate item #4: AO2's closure verdict subsumes ao-operator's.
+    When opt-in (``require=True``), discover any AO2 native evaluator
+    decisions checked into the repo and reject closure unless the AO2
+    verifier accepts every one of them. The verifier itself owns the
+    signature, trust-boundary, and digest checks — this function only
+    consumes the verifier's verdict and refuses closure on anything other
+    than a fully-clean accept.
+
+    The check is opt-in because not every repo carries an AO2 native
+    evaluator decision yet; closures that pre-date AO2 native evaluation
+    must keep passing unchanged. When ``require=True`` and a decision is
+    present, the closure refuses to "pass" with an unsigned, missing, or
+    rejected verdict, even if the rest of the closure checks succeed.
+    """
+    decisions = _discover_ao2_native_evaluator_decisions(repo)
+    details: list[str] = []
+    reports: list[dict[str, Any]] = []
+
+    if require and not decisions:
+        details.append("required AO2 native evaluator decision was not found")
+
+    if not decisions or not require:
+        return {
+            "verdict": "FAIL" if details else "PASS",
+            "details": details,
+            "decision_count": len(decisions),
+            "reports": reports,
+            "ao2_binary_resolved": None,
+        }
+
+    binary = ao2_binary if ao2_binary is not None else _find_ao2_binary(repo)
+    if not binary:
+        details.append(
+            "ao2 binary not found; closure cannot consult AO2 native evaluator "
+            "verdict (set AO2_BINARY, install ao2 on PATH, or build ao2 sibling)"
+        )
+        return {
+            "verdict": "FAIL",
+            "details": details,
+            "decision_count": len(decisions),
+            "reports": reports,
+            "ao2_binary_resolved": None,
+        }
+
+    for path in decisions:
+        rel = path.relative_to(repo) if path.is_relative_to(repo) else path
+        try:
+            decision_data = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            details.append(f"{rel}: could not parse AO2 native evaluator decision: {exc}")
+            reports.append({"path": str(rel), "verdict": "FAIL"})
+            continue
+        decision_schema = decision_data.get("schema_version") if isinstance(decision_data, dict) else None
+        if decision_schema != AO2_NATIVE_EVALUATOR_DECISION_SCHEMA:
+            details.append(
+                f"{rel}: schema_version must be "
+                f"{AO2_NATIVE_EVALUATOR_DECISION_SCHEMA!r}, got {decision_schema!r}"
+            )
+            reports.append(
+                {
+                    "path": str(rel),
+                    "decision_schema_version": decision_schema,
+                    "verdict": "FAIL",
+                }
+            )
+            continue
+
+        verification, run_errors = _run_ao2_evaluator_decision_verifier(binary, path, timeout)
+        if verification is None:
+            for err in run_errors:
+                details.append(f"{rel}: {err}")
+            reports.append({"path": str(rel), "verdict": "FAIL"})
+            continue
+        verification_errors = _check_ao2_native_evaluator_verification(verification)
+        verdict = "FAIL" if verification_errors else "PASS"
+        reports.append(
+            {
+                "path": str(rel),
+                "decision_schema_version": decision_schema,
+                "verification_schema_version": verification.get("schema_version"),
+                "verification_status": verification.get("status"),
+                "signature_status": verification.get("signature_status"),
+                "verdict": verdict,
+            }
+        )
+        for err in verification_errors:
+            details.append(f"{rel}: {err}")
+
+    return {
+        "verdict": "FAIL" if details else "PASS",
+        "details": details,
+        "decision_count": len(decisions),
+        "reports": reports,
+        "ao2_binary_resolved": binary,
+    }
+
+
 def _int_value(value: Any) -> int:
     if isinstance(value, int):
         return value
@@ -322,6 +583,8 @@ def run(
     dry_run: bool,
     extra: list[str],
     require_obligation_ledger: bool = False,
+    require_ao2_evaluator_decision: bool = False,
+    ao2_binary: str | None = None,
 ) -> dict[str, Any]:
     commands = closure_commands(repo, include_pytest=include_pytest)
     for item in extra:
@@ -357,6 +620,15 @@ def run(
     if obligation_result["verdict"] == "FAIL":
         errors.extend(obligation_result["details"])
 
+    ao2_evaluator_result = ao2_evaluator_decision_evidence(
+        repo,
+        require=require_ao2_evaluator_decision,
+        ao2_binary=ao2_binary,
+        timeout=timeout,
+    )
+    if ao2_evaluator_result["verdict"] == "FAIL":
+        errors.extend(ao2_evaluator_result["details"])
+
     verdict = "FAIL" if errors else ("WARN" if warning_errors else "PASS")
     return {
         "repo": str(repo),
@@ -367,6 +639,7 @@ def run(
         "trigger_evidence": trigger_result,
         "gate_r_evidence": gate_r_result,
         "obligation_ledger_evidence": obligation_result,
+        "ao2_evaluator_decision_evidence": ao2_evaluator_result,
     }
 
 
@@ -394,6 +667,17 @@ def self_test() -> int:
         if required["verdict"] != "FAIL" or "required obligation ledger was not found" not in required["errors"]:
             print(json.dumps(required, indent=2), file=sys.stderr)
             return 1
+        ao2_required = run(
+            repo,
+            include_pytest=False,
+            timeout=10,
+            dry_run=False,
+            extra=[],
+            require_ao2_evaluator_decision=True,
+        )
+        if ao2_required["verdict"] != "FAIL" or "required AO2 native evaluator decision was not found" not in ao2_required["errors"]:
+            print(json.dumps(ao2_required, indent=2), file=sys.stderr)
+            return 1
     print("OK verify_closure self-test")
     return 0
 
@@ -411,6 +695,23 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--require-obligation-ledger",
         action="store_true",
         help="fail closure when no AO2 obligation ledger is present",
+    )
+    parser.add_argument(
+        "--require-ao2-evaluator-decision",
+        action="store_true",
+        help=(
+            "fail closure unless every AO2 native evaluator decision in the "
+            "repo is accepted by `ao2 factory verify-evaluator-decision` "
+            "(Phase 2 exit-gate #4: AO2 owns the closure verdict)"
+        ),
+    )
+    parser.add_argument(
+        "--ao2-binary",
+        default=None,
+        help=(
+            "Override the ao2 binary path used by --require-ao2-evaluator-decision "
+            "(defaults to $AO2_BINARY, then ../ao2/target/release/ao2, then $PATH)"
+        ),
     )
     parser.add_argument(
         "--extra",
@@ -433,6 +734,8 @@ def main(argv: list[str] | None = None) -> int:
         dry_run=args.dry_run,
         extra=args.extra,
         require_obligation_ledger=args.require_obligation_ledger,
+        require_ao2_evaluator_decision=args.require_ao2_evaluator_decision,
+        ao2_binary=args.ao2_binary,
     )
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True))

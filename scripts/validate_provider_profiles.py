@@ -14,7 +14,7 @@ import render_runspec
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES_DIR = ROOT / "examples" / "provider-profiles"
-VALID_PROVIDERS = {"claude", "codex"}
+VALID_PROVIDERS = {"claude", "codex", "antigravity"}
 EXPECTED_CORE_PROVIDERS = {
     "all-codex.env": {
         "planner-intake": "codex",
@@ -33,6 +33,15 @@ EXPECTED_CORE_PROVIDERS = {
         "reviewer-slice": "claude",
         "integrator": "claude",
         "evaluator-closer": "claude",
+    },
+    "all-antigravity.env": {
+        "planner-intake": "antigravity",
+        "plan-hardener": "antigravity",
+        "factory-manager": "antigravity",
+        "implementer-slice": "antigravity",
+        "reviewer-slice": "antigravity",
+        "integrator": "antigravity",
+        "evaluator-closer": "antigravity",
     },
     "mixed-throughput.env": {
         "planner-intake": "claude",
