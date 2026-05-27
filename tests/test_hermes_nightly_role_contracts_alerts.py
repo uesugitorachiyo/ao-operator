@@ -66,6 +66,32 @@ def _full_coverage_block() -> dict[str, Any]:
     }
 
 
+def _bridge_with_governed_roles(loaded_count: int, roles: list[str]) -> dict[str, Any]:
+    return {
+        "schema": "ao2.factory-bridge.v1",
+        "role_contracts": {
+            "owner": "ao2",
+            "factory_v3_required_to_load": False,
+            "loaded_count": loaded_count,
+            "missing_roles": [],
+            "path": "/fake/agents",
+        },
+        "governed_run_plan": {
+            "tasks": [
+                {
+                    "canonical_role": role,
+                    "role_contract_ref": {
+                        "contract_status": "loaded",
+                        "name": role,
+                        "sha256": f"{index:064x}",
+                    },
+                }
+                for index, role in enumerate(roles, start=1)
+            ]
+        },
+    }
+
+
 # ---------------------------------------------------------------------------
 # Happy path: full coverage emits no alerts. The expected-default constant
 # must match the canonical 17-task fan-out RunSpec after intake.toml landed.
@@ -88,6 +114,24 @@ def test_default_expected_count_matches_canonical_runspec_size() -> None:
     bumping the constant in lock-step.
     """
     assert nightly.ROLE_CONTRACTS_EXPECTED_LOADED_COUNT_DEFAULT == 17
+
+
+def test_runspec_sized_role_coverage_emits_no_alerts(tmp_path: Path) -> None:
+    roles = [
+        "intake",
+        "plan_hardener",
+        "factory_manager",
+        "implementer",
+        "reviewer",
+        "integrator",
+        "evaluator_closer",
+    ]
+    bridge = _write_bridge_evidence(
+        tmp_path,
+        _bridge_with_governed_roles(loaded_count=len(roles), roles=roles),
+    )
+    payload = _payload({"factory_compat_bridge_evidence": str(bridge)})
+    assert nightly.role_contracts_alerts(payload) == []
 
 
 # ---------------------------------------------------------------------------
@@ -153,6 +197,29 @@ def test_loaded_count_below_threshold_fires_alert(tmp_path: Path) -> None:
         f"threshold={nightly.ROLE_CONTRACTS_EXPECTED_LOADED_COUNT_DEFAULT}"
         in alerts[0]["message"]
     )
+
+
+def test_loaded_count_below_runspec_sized_threshold_fires_alert(tmp_path: Path) -> None:
+    roles = [
+        "intake",
+        "plan_hardener",
+        "factory_manager",
+        "implementer",
+        "reviewer",
+        "integrator",
+        "evaluator_closer",
+    ]
+    bridge = _write_bridge_evidence(
+        tmp_path,
+        _bridge_with_governed_roles(loaded_count=len(roles) - 1, roles=roles),
+    )
+    alerts = nightly.role_contracts_alerts(
+        _payload({"factory_compat_bridge_evidence": str(bridge)})
+    )
+    assert len(alerts) == 1
+    assert alerts[0]["name"] == "role_contracts_loaded_count_regression"
+    assert "loaded_count=6" in alerts[0]["message"]
+    assert "threshold=7" in alerts[0]["message"]
 
 
 def test_loaded_count_at_or_above_threshold_does_not_fire(tmp_path: Path) -> None:

@@ -3,25 +3,15 @@
 
 Phase 2 exit-gate items #1, #2, #4, and #5 all require nightly evidence
 that AO Operator (ao-operator) can hand a RunSpec input to AO2 and let
-AO2 own planning, queue execution, retry/cancel semantics, and the
-signed evidence pack. Until now the nightly pipeline only invoked
-``ao2 factory pack-evidence`` against the AO2 repo itself, which has no
-populated factory-compat queue — so the downstream evaluator decision
-producer emitted ``status=missing_inputs`` every night.
+AO2 own planning, queue execution, retry/cancel semantics, evaluator
+closure, and the signed evidence pack. The preferred path is now
+``ao2 factory governed-run``; the older plan/queue/pack command chain is
+kept as an explicit compatibility path for older AO2 binaries and tests.
 
 This orchestrator materialises a fresh factory-compat target by copying
 a fixture repo, writes a deterministic ao-operator-style request +
-RunSpec into a scratch workdir, then walks AO2 through the four
-authoritative CLI verbs:
-
-  1. ``ao2 factory plan`` (translates ao-operator RunSpec into an AO2
-     plan and writes the planning evidence);
-  2. ``ao2 factory queue-submit`` (registers the plan on AO2's
-     factory-compat queue);
-  3. ``ao2 factory queue-run-next`` (claims the queued entry and
-     executes it under AO2's evaluator + obligation discipline);
-  4. ``ao2 factory pack-evidence`` (exports the canonical
-     ``ao2.evidence-pack.v1`` JSON, optionally signed).
+RunSpec into a scratch workdir, then delegates the whole authoritative
+chain to AO2's native governed-run command.
 
 Factory-v3 never executes the run; it only orchestrates the CLI calls
 and reports AO2's verdicts verbatim. Signing key material, when
@@ -59,13 +49,14 @@ AO2_PLAN_SCHEMA = "ao2.ao-operator-compat-plan-result.v1"
 AO2_QUEUE_SUBMIT_SCHEMA = "ao2.ao-operator-compat-workbench-queue-submit.v1"
 AO2_QUEUE_RUN_NEXT_SCHEMA = "ao2.ao-operator-compat-workbench-queue-run-next.v1"
 AO2_PACK_EVIDENCE_SCHEMA = "ao2.ao-operator-compat-pack-evidence.v1"
+AO2_GOVERNED_RUN_SCHEMA = "ao2.ao-operator-compat-governed-run.v1"
 AO2_EVIDENCE_PACK_SCHEMA = "ao2.evidence-pack.v1"
 AO2_MEMORY_RECORD_SCHEMA = "ao2.memory-record.v1"
 
 DEFAULT_MEMORY_RECORD_KIND = "ao-operator-compat-nightly-run"
 
 EXPECTED_FACTORY_V3_ROLE = "parity_oracle_only"
-EXPECTED_AO2_DECISION_OWNER = "ao2-workbench-queue"
+EXPECTED_AO2_DECISION_OWNER = "ao2-native-governed-run"
 EXPECTED_CONTROL_PLANE_ROLE = "read_only_observer_after_signed_evidence"
 
 DEFAULT_RUN_ID = "nightly-factory-compat-run"
@@ -231,6 +222,7 @@ def _build_produced_payload(
     pack_evidence_stdout: dict[str, Any],
     evidence_pack_path: Path,
     evidence_pack_sha256: str,
+    governed_run_stdout: dict[str, Any] | None = None,
     bridge_evidence_summary: dict[str, Any] | None = None,
     hermes_context_summary: dict[str, Any] | None = None,
     memory_record_summary: dict[str, Any] | None = None,
@@ -308,6 +300,24 @@ def _build_produced_payload(
         "evidence_pack_signature": pack_evidence_stdout.get("signature"),
         "evidence_pack_deterministic_replay": pack_evidence_stdout.get(
             "deterministic_replay"
+        ),
+        "governed_run": (
+            {
+                "schema_version": governed_run_stdout.get("schema_version"),
+                "status": governed_run_stdout.get("status"),
+                "run_id": governed_run_stdout.get("run_id"),
+                "artifacts": governed_run_stdout.get("artifacts"),
+                "checklist": governed_run_stdout.get("governed_run_checklist"),
+                "ao2_decision_owner": governed_run_stdout.get(
+                    "ao2_decision_owner"
+                ),
+                "factory_v3_role": governed_run_stdout.get("factory_v3_role"),
+                "control_plane_role": governed_run_stdout.get(
+                    "control_plane_role"
+                ),
+            }
+            if governed_run_stdout is not None
+            else None
         ),
         "next_action": (
             "point ao2_release_ao2_native_evidence_pack_producer.py at "
@@ -554,6 +564,86 @@ def _ao2_factory_pack_evidence(
             ),
             completed=None,
         )
+    return payload
+
+
+def _ao2_factory_governed_run(
+    *,
+    ao2_binary: str,
+    request_path: Path,
+    runspec_path: Path,
+    factory_target: Path,
+    run_id: str,
+    out_dir: Path,
+    evidence_pack_out: Path,
+    signing_key: Path | None,
+    signer_id: str | None,
+) -> dict[str, Any]:
+    subcommand = [
+        "factory",
+        "governed-run",
+        "--request",
+        str(request_path),
+        "--runspec",
+        str(runspec_path),
+        "--target",
+        str(factory_target),
+        "--run-id",
+        run_id,
+        "--out-dir",
+        str(out_dir),
+    ]
+    if signing_key is not None:
+        subcommand.extend(["--signing-key", str(signing_key)])
+    if signer_id is not None:
+        subcommand.extend(["--signer-id", signer_id])
+    payload, _ = _run_ao2(
+        ao2_binary=ao2_binary,
+        subcommand=subcommand,
+        expected_schema=AO2_GOVERNED_RUN_SCHEMA,
+    )
+    status = payload.get("status")
+    if status != "accepted":
+        raise _AO2Failure(
+            stage="governed-run",
+            reason=(
+                "ao2 factory governed-run reported status "
+                f"{status!r}; expected 'accepted'"
+            ),
+            completed=None,
+        )
+
+    pack_payload = payload.get("pack_evidence") or {}
+    pack_schema = pack_payload.get("evidence_pack_schema_version")
+    if pack_schema != AO2_EVIDENCE_PACK_SCHEMA:
+        raise _AO2Failure(
+            stage="governed-run",
+            reason=(
+                "ao2 factory governed-run reported evidence_pack_schema_"
+                f"version {pack_schema!r}; expected "
+                f"{AO2_EVIDENCE_PACK_SCHEMA!r}"
+            ),
+            completed=None,
+        )
+
+    packed_evidence = (payload.get("artifacts") or {}).get("packed_evidence")
+    source = Path(str(packed_evidence)) if packed_evidence else evidence_pack_out
+    if not source.is_file():
+        raise _AO2Failure(
+            stage="governed-run",
+            reason=(
+                "ao2 factory governed-run did not write the packed "
+                f"evidence file at {source}"
+            ),
+            completed=None,
+        )
+    if source.resolve() != evidence_pack_out.resolve():
+        evidence_pack_out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, evidence_pack_out)
+        for suffix in (".sig", ".public.pem", ".signed-payload.json"):
+            source_sidecar = Path(str(source) + suffix)
+            if source_sidecar.is_file():
+                shutil.copyfile(source_sidecar, Path(str(evidence_pack_out) + suffix))
     return payload
 
 
@@ -1219,6 +1309,17 @@ def build_parser() -> argparse.ArgumentParser:
             "operators can opt in once the CP receipt producer is wired."
         ),
     )
+    parser.add_argument(
+        "--native-governed-run",
+        action="store_true",
+        help=(
+            "Delegate the factory-compat chain to "
+            "`ao2 factory governed-run` instead of driving the legacy "
+            "plan -> queue-submit -> queue-run-next -> pack-evidence "
+            "subcommands from ao-operator. This is the preferred Hermes "
+            "nightly path because AO2 owns evaluator closure end-to-end."
+        ),
+    )
     parser.add_argument("--write-json", type=Path, required=True)
     parser.add_argument("--json", action="store_true")
     return parser
@@ -1418,27 +1519,64 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     partial: dict[str, Any] = {}
+    governed_run_stdout: dict[str, Any] | None = None
     try:
-        plan_stdout = _ao2_factory_plan(
-            ao2_binary=args.ao2_binary,
-            request_path=request_path,
-            runspec_path=runspec_path,
-            factory_target=args.target,
-            plan_out=plan_path,
-        )
-        partial["plan"] = plan_stdout
-        queue_submit_stdout = _ao2_factory_queue_submit(
-            ao2_binary=args.ao2_binary,
-            plan_path=plan_path,
-            factory_target=args.target,
-            run_id=args.run_id,
-        )
-        partial["queue_submit"] = queue_submit_stdout
-        queue_run_next_stdout = _ao2_factory_queue_run_next(
-            ao2_binary=args.ao2_binary,
-            factory_target=args.target,
-        )
-        partial["queue_run_next"] = queue_run_next_stdout
+        if args.native_governed_run:
+            governed_run_stdout = _ao2_factory_governed_run(
+                ao2_binary=args.ao2_binary,
+                request_path=request_path,
+                runspec_path=runspec_path,
+                factory_target=args.target,
+                run_id=args.run_id,
+                out_dir=args.workdir / "governed-run",
+                evidence_pack_out=args.evidence_pack_out,
+                signing_key=args.signing_key,
+                signer_id=args.signer_id,
+            )
+            partial["governed_run"] = governed_run_stdout
+            plan_stdout = governed_run_stdout.get("plan") or {}
+            queue_submit_stdout = governed_run_stdout.get("queue_submit") or {}
+            queue_run_next_stdout = (
+                governed_run_stdout.get("queue_run_next") or {}
+            )
+            pack_evidence_stdout = (
+                governed_run_stdout.get("pack_evidence") or {}
+            )
+            plan_artifact = (
+                governed_run_stdout.get("artifacts") or {}
+            ).get("plan")
+            if plan_artifact:
+                plan_path = Path(str(plan_artifact))
+        else:
+            plan_stdout = _ao2_factory_plan(
+                ao2_binary=args.ao2_binary,
+                request_path=request_path,
+                runspec_path=runspec_path,
+                factory_target=args.target,
+                plan_out=plan_path,
+            )
+            partial["plan"] = plan_stdout
+            queue_submit_stdout = _ao2_factory_queue_submit(
+                ao2_binary=args.ao2_binary,
+                plan_path=plan_path,
+                factory_target=args.target,
+                run_id=args.run_id,
+            )
+            partial["queue_submit"] = queue_submit_stdout
+            queue_run_next_stdout = _ao2_factory_queue_run_next(
+                ao2_binary=args.ao2_binary,
+                factory_target=args.target,
+            )
+            partial["queue_run_next"] = queue_run_next_stdout
+            pack_evidence_stdout = _ao2_factory_pack_evidence(
+                ao2_binary=args.ao2_binary,
+                factory_target=args.target,
+                run_id=args.run_id,
+                evidence_pack_out=args.evidence_pack_out,
+                signing_key=args.signing_key,
+                signer_id=args.signer_id,
+            )
+            partial["pack_evidence"] = pack_evidence_stdout
         entry = queue_run_next_stdout.get("entry") or {}
         entry_status = entry.get("status")
         if entry_status != "accepted":
@@ -1450,15 +1588,6 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 completed=None,
             )
-        pack_evidence_stdout = _ao2_factory_pack_evidence(
-            ao2_binary=args.ao2_binary,
-            factory_target=args.target,
-            run_id=args.run_id,
-            evidence_pack_out=args.evidence_pack_out,
-            signing_key=args.signing_key,
-            signer_id=args.signer_id,
-        )
-        partial["pack_evidence"] = pack_evidence_stdout
     except _AO2Failure as failure:
         summary = _build_failed_payload(
             inputs=inputs,
@@ -1573,6 +1702,7 @@ def main(argv: list[str] | None = None) -> int:
         pack_evidence_stdout=pack_evidence_stdout,
         evidence_pack_path=args.evidence_pack_out,
         evidence_pack_sha256=evidence_pack_sha256,
+        governed_run_stdout=governed_run_stdout,
         bridge_evidence_summary=bridge_summary,
         hermes_context_summary=hermes_summary,
         memory_record_summary=memory_record_summary,

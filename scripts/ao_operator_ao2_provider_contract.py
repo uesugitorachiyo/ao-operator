@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Deterministic AO Operator role -> AO2 provider-contract mapping.
 
-This module is the single source of truth for how ao-operator AO Operator
-role identifiers (whether expressed in the ao-operator/runspec/v1 shape with
+This module is the single source of truth for how factory-v3 AO Operator
+role identifiers (whether expressed in the factory-v3/runspec/v1 shape with
 top-level `roles:` or in the ao.dev/v1 `Run` shape with `spec.tasks`) collapse
 into a fixed AO2 provider-contract. The mapping is intentionally a frozen
 table so that:
@@ -15,7 +15,7 @@ table so that:
 
 Provider contracts are AO2-owned trust artifacts: they declare the sandbox,
 evidence obligations, and closure-owner that AO2 enforces for a given role
-class. ao-operator does not pick a provider binary here -- AO2 still resolves
+class. factory-v3 does not pick a provider binary here -- AO2 still resolves
 the live provider through its scripted/codex/claude-cli adapter contract.
 """
 
@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = "ao-operator/ao-operator-ao2-provider-contract/v1"
+SCHEMA = "factory-v3/ao-operator-ao2-provider-contract/v1"
 MAPPING_VERSION = "1.0.0"
 
 TRUST_BOUNDARY: dict[str, str] = {
@@ -253,7 +253,7 @@ def extract_role_ids(runspec: dict[str, Any]) -> list[str]:
     """Pull the ordered list of role ids out of a RunSpec.
 
     Supports both shapes the AO Operator emits:
-      - ao-operator/runspec/v1: top-level `roles: [{id, ...}]`
+      - factory-v3/runspec/v1: top-level `roles: [{id, ...}]`
       - ao.dev/v1 `Run`: `spec.tasks: [{id, kind: agent, ...}]`
 
     Tasks with `kind` set to something other than `agent` are skipped because

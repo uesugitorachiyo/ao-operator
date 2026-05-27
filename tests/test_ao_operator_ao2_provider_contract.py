@@ -185,7 +185,7 @@ def test_mapping_table_round_trips_through_json():
 
 
 FACTORY_V3_RUNSPEC = {
-    "schema": "ao-operator/runspec/v1",
+    "schema": "factory-v3/runspec/v1",
     "slug": "bug-fix",
     "roles": [
         {"id": "intake"},
@@ -199,7 +199,7 @@ FACTORY_V3_RUNSPEC = {
 AO_DEV_V1_RUNSPEC = {
     "apiVersion": "ao.dev/v1",
     "kind": "Run",
-    "metadata": {"name": "ao-operator-smoke"},
+    "metadata": {"name": "factory-v3-smoke"},
     "spec": {
         "tasks": [
             {"id": "planner-intake", "kind": "agent", "spec": {}},

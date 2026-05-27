@@ -20,6 +20,7 @@ AO2_QUEUE_RUN_NEXT_SCHEMA = (
     "ao2.ao-operator-compat-workbench-queue-run-next.v1"
 )
 AO2_PACK_EVIDENCE_SCHEMA = "ao2.ao-operator-compat-pack-evidence.v1"
+AO2_GOVERNED_RUN_SCHEMA = "ao2.ao-operator-compat-governed-run.v1"
 AO2_EVIDENCE_PACK_SCHEMA = "ao2.evidence-pack.v1"
 
 
@@ -51,7 +52,7 @@ def _fake_ao2_payloads(
     queue_run_next_entry_status: str = "accepted",
 ) -> dict[str, dict[str, Any]]:
     queue_path = factory_target / ".ao2" / "factory-compat" / "queue.json"
-    return {
+    payloads = {
         "plan": {
             "schema_version": AO2_PLAN_SCHEMA,
             "evidence_path": str(
@@ -111,6 +112,52 @@ def _fake_ao2_payloads(
             signer_id=signer_id,
         ),
     }
+    pack_evidence = payloads["pack-evidence"]
+    payloads["governed-run"] = {
+        "schema_version": AO2_GOVERNED_RUN_SCHEMA,
+        "status": "accepted",
+        "run_id": run_id,
+        "artifacts": {
+            "plan": str(factory_target / ".ao2" / "factory-compat" / "plan.json"),
+            "queue_submit": str(queue_path),
+            "run_result": str(
+                factory_target
+                / ".ao2"
+                / "factory-compat"
+                / f"{run_id}-result.json"
+            ),
+            "packed_evidence": str(evidence_pack_out),
+            "governed_run": str(
+                factory_target
+                / ".ao2"
+                / "factory-compat"
+                / f"{run_id}-governed-run.json"
+            ),
+        },
+        "plan": payloads["plan"],
+        "queue_submit": payloads["queue-submit"],
+        "queue_run_next": payloads["queue-run-next"],
+        "pack_evidence": pack_evidence,
+        "run_result_verification": {"status": "accepted"},
+        "evaluator_decision": {"verdict": "accepted"},
+        "evaluator_decision_verification": {"status": "accepted"},
+        "governed_run_checklist": {
+            "smoke_only_wrapper": False,
+            "ao2_planned_factory_compat_workflow": True,
+            "ao2_queue_executed_factory_compat_workflow": True,
+            "ao2_verified_primary_run_result": True,
+            "ao2_packed_primary_evidence": True,
+            "ao2_signed_evaluator_closure": signed,
+            "factory_v3_drives_workflow": False,
+            "factory_v3_role": "parity_oracle_only",
+            "control_plane_role": "read_only_observer_after_signed_evidence",
+            "hermes_role": "front_end_scheduler_queue_and_memory_bookkeeping",
+        },
+        "factory_v3_role": "parity_oracle_only",
+        "ao2_decision_owner": "ao2-native-governed-run",
+        "control_plane_role": "read_only_observer_after_signed_evidence",
+    }
+    return payloads
 
 
 def _pack_evidence_payload(
@@ -137,7 +184,7 @@ def _pack_evidence_payload(
         "evidence_pack_schema_version": evidence_pack_schema,
         "evidence_pack_execution_owner": "ao2",
         "factory_v3_role": "parity_oracle_only",
-        "ao2_decision_owner": "ao2-workbench-queue",
+        "ao2_decision_owner": "ao2-native-governed-run",
         "control_plane_role": "read_only_observer_after_signed_evidence",
         "deterministic_replay": {
             "schema_version": (
@@ -286,7 +333,7 @@ def main() -> int:
     if payload is None:
         sys.stderr.write(f"fake-ao2 has no payload for {{sub}}\\n")
         return 3
-    if sub == "pack-evidence" and WRITE_PACK_FILE:
+    if sub in ("pack-evidence", "governed-run") and WRITE_PACK_FILE:
         os.makedirs(os.path.dirname(EVIDENCE_PACK_OUT), exist_ok=True)
         with open(EVIDENCE_PACK_OUT, "w", encoding="utf-8") as fh:
             json.dump(PACK_BODY, fh, indent=2, sort_keys=True)
@@ -327,6 +374,7 @@ def run_orchestrator(
     memory_record_title: str | None = None,
     memory_record_body: str | None = None,
     require_all_ao2_ref_categories: bool = False,
+    native_governed_run: bool = False,
     extra_env: dict[str, str] | None = None,
     expect_returncode: int = 0,
 ) -> tuple[dict | None, subprocess.CompletedProcess[str]]:
@@ -383,6 +431,8 @@ def run_orchestrator(
         args.extend(["--memory-record-body", memory_record_body])
     if require_all_ao2_ref_categories:
         args.append("--require-all-ao2-ref-categories")
+    if native_governed_run:
+        args.append("--native-governed-run")
     env = os.environ.copy()
     if extra_env:
         env.update(extra_env)
@@ -484,7 +534,7 @@ def test_missing_inputs_when_binary_absent(tmp_path: Path) -> None:
     assert payload["schema_version"] == ORCHESTRATOR_SCHEMA
     assert payload["status"] == "missing_inputs"
     assert payload["factory_v3_role"] == "parity_oracle_only"
-    assert payload["ao2_decision_owner"] == "ao2-workbench-queue"
+    assert payload["ao2_decision_owner"] == "ao2-native-governed-run"
     assert (
         payload["control_plane_role"]
         == "read_only_observer_after_signed_evidence"
@@ -596,7 +646,7 @@ def test_produces_full_chain_with_fake_ao2_binary(tmp_path: Path) -> None:
     assert payload["status"] == "produced"
     assert payload["stage"] == "complete"
     assert payload["factory_v3_role"] == "parity_oracle_only"
-    assert payload["ao2_decision_owner"] == "ao2-workbench-queue"
+    assert payload["ao2_decision_owner"] == "ao2-native-governed-run"
     assert (
         payload["control_plane_role"]
         == "read_only_observer_after_signed_evidence"
@@ -624,6 +674,51 @@ def test_produces_full_chain_with_fake_ao2_binary(tmp_path: Path) -> None:
     assert payload["evidence_pack_sha256"] == expected_sha
     # Target materialised; fixture file copied over.
     assert (target / "pyproject.toml").is_file()
+
+
+def test_native_governed_run_mode_delegates_chain_to_ao2(tmp_path: Path) -> None:
+    fixture = _seed_fixture(tmp_path)
+    target = tmp_path / "target"
+    workdir = tmp_path / "workdir"
+    out = tmp_path / "pack.json"
+    summary = tmp_path / "summary.json"
+    fake_ao2 = tmp_path / "ao2"
+    run_id = "native-governed-run"
+    payloads = _fake_ao2_payloads(
+        factory_target=target,
+        run_id=run_id,
+        evidence_pack_out=out,
+    )
+    _write_fake_ao2(
+        path=fake_ao2,
+        payloads=payloads,
+        evidence_pack_out=out,
+    )
+
+    payload, _ = run_orchestrator(
+        ao2_fixture=fixture,
+        target=target,
+        workdir=workdir,
+        evidence_pack_out=out,
+        write_json=summary,
+        ao2_binary=str(fake_ao2),
+        run_id=run_id,
+        native_governed_run=True,
+    )
+
+    assert payload is not None
+    assert payload["status"] == "produced"
+    assert payload["stage"] == "complete"
+    assert payload["ao2_decision_owner"] == "ao2-native-governed-run"
+    assert payload["governed_run"]["schema_version"] == AO2_GOVERNED_RUN_SCHEMA
+    assert payload["governed_run"]["status"] == "accepted"
+    assert payload["governed_run"]["checklist"]["smoke_only_wrapper"] is False
+    assert payload["governed_run"]["checklist"]["factory_v3_drives_workflow"] is False
+    assert payload["plan"]["schema_version"] == AO2_PLAN_SCHEMA
+    assert payload["queue_run_next"]["entry_status"] == "accepted"
+    assert payload["pack_evidence_summary"]["schema_version"] == AO2_PACK_EVIDENCE_SCHEMA
+    assert payload["evidence_pack_path"] == str(out)
+    assert out.is_file()
 
 
 def test_produces_signed_chain_when_signing_key_supplied(tmp_path: Path) -> None:
