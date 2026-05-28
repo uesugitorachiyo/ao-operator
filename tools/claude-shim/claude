@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+"""
+AO2 sdd-planner claude provider shim.
+
+Reads an `ao2.sdd-provider-request.v1` JSON envelope on stdin, invokes the
+real Claude Code CLI in --print/--output-format=json mode with the §8.3
+system prompt + envelope context, then prints the extracted
+`ao2.sdd-plan-candidate.v1` JSON object on stdout.
+
+OAuth path — no ANTHROPIC_API_KEY required. Uses the user's existing
+Claude Code session.
+
+Logs every invocation (envelope, args, raw response, parsed candidate)
+under /tmp/sdd-planner-claude-shim/logs/ for postmortem.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+import uuid
+from pathlib import Path
+
+LOG_DIR = Path("/tmp/sdd-planner-claude-shim/logs")
+REAL_CLAUDE = "/Users/torachiyouesugi/.local/bin/claude"
+
+# §8.3 prompt template, mirrored from
+# /Users/torachiyouesugi/Documents/ao2/crates/sdd-planner/src/provider/spec.md
+#
+# Deviations from spec.md (intentional, documented in
+# .../factory-v3/dogfood/sdd-planner-claude/findings.md):
+#   - G1 fix: append a worked candidate skeleton.
+#   - G9 fix: embed the V3 verb allow-list so the model picks
+#     deterministically rather than guessing.
+#   - G10 fix: surface the V10 title cap (validator.rs:308 — ≤80 chars).
+#
+# If AO2 changes the sdd-planner verb list or caps, mirror them here.
+# The list below is sorted for human review.
+SYSTEM_PROMPT = """You are an SDD plan drafter. Read the JSON envelope on stdin and
+return EXACTLY ONE JSON object matching schema
+`ao2.sdd-plan-candidate.v1`.
+
+Constraints:
+- Use ONLY file paths from `context.surface_map.files[].path`.
+  Hallucinated paths are rejected.
+- `plan.steps` length ∈ [1, 25].
+- `plan.title` length ≤ 80 characters (V10).
+- Every `step.acceptance` entry MUST begin with one verb from this
+  closed allow-list (case-insensitive; first whitespace-delimited
+  token; DO NOT use hyphenated compounds like `Re-export` — pick
+  `Expose` or `Add` instead; DO NOT use `keep`/`maintain` — pick
+  `Preserve` instead):
+
+    accept, add, annotate, append, apply, assert, audit, block, build,
+    bump, cancel, capture, change, check, clear, close, collect,
+    commit, compose, compute, configure, confirm, connect, construct,
+    copy, create, declare, decode, define, delete, deliver, deploy,
+    derive, describe, deserialize, detect, diff, dispatch, document,
+    drop, dump, emit, enable, encode, enforce, ensure, establish,
+    exit, expand, expect, expose, extend, extract, fail, fetch, find,
+    finish, fix, flag, flush, format, gate, generate, get, halt,
+    handle, hash, hide, ignore, implement, import, include, increment,
+    index, init, initialize, insert, inspect, install, invoke, issue,
+    land, lint, list, load, lock, log, make, map, mark, match, merge,
+    mirror, mock, move, name, normalize, open, order, output, package,
+    parse, pass, persist, pin, populate, post, preserve, print,
+    produce, propagate, prove, publish, pull, push, query, read,
+    rebase, record, redact, refuse, register, reject, release, remove,
+    rename, render, replace, report, request, require, reset, resolve,
+    respond, restart, restore, retry, return, review, rotate, route,
+    run, sanitize, save, scan, schedule, select, send, serialize,
+    serve, set, ship, show, sign, skip, sort, split, stamp, start,
+    stop, store, stream, stub, submit, succeed, support, surface,
+    swap, sync, tag, target, test, throw, tokenize, trace, track,
+    transform, translate, trigger, trim, truncate, tune, unblock,
+    uninstall, unlock, unregister, update, upgrade, upload, use,
+    validate, verify, wait, warn, watch, wrap, write, yield, zero,
+    cite, demonstrate, denote, discover, explain, identify,
+    illustrate, indicate, locate, maintain, mention, note, observe,
+    place, point, recognize, reexport, reference.
+
+- `trust_boundary.mutates_ao_artifacts` MUST be the literal false.
+- `provenance.provider` is set by the orchestrator; you may set it
+  to "codex" or "claude" matching the CLI you are invoked as.
+- Allow-listed shell commands only (in `plan.exit_criteria.tests`,
+  `gates`, and `manual` entries): cargo, npm, pnpm, pytest,
+  python3, bash, sh, node, git, gh, ao2, ao.
+
+If `context.prior_errors` is non-empty, your previous attempt was
+rejected. Fix each error in your new output. The errors are
+machine-generated and unambiguous.
+
+Return ONLY the JSON object. No prose, no markdown fences.
+
+Required candidate shape (illustrative; emit the actual fields):
+{
+  "schema_version": "ao2.sdd-plan-candidate.v1",
+  "plan_id": "<ULID>",
+  "generated_at_utc": "<RFC3339 UTC>",
+  "prompt": { "text": "<verbatim prompt>", "sha256": "<orchestrator overrides>" },
+  "target": {
+    "repo_path": "<orchestrator overrides>",
+    "head_sha": "<surface_map.head_sha>",
+    "head_subject": "<orchestrator overrides>",
+    "surface_map_sha256": "<orchestrator overrides>"
+  },
+  "plan": {
+    "kind": "build",
+    "title": "<≤ 80 chars>",
+    "goal": "<single sentence>",
+    "non_goals": ["..."],
+    "steps": [
+      {
+        "id": "step_<snake>",
+        "kind": "create|edit|test|verify|delete",
+        "paths": ["<must come from surface_map>"],
+        "rationale": "<one short sentence>",
+        "acceptance": ["<allow-listed-verb-led>", "..."],
+        "depends_on": ["<prior step.id>", "..."]
+      }
+    ],
+    "exit_criteria": {
+      "tests": ["<allow-listed shell command>"],
+      "gates": [],
+      "manual": []
+    }
+  },
+  "provenance": {
+    "attempts": 1,
+    "provider": "claude",
+    "engine_sha": "<orchestrator overrides>",
+    "cli_version": "<orchestrator overrides>"
+  },
+  "trust_boundary": {
+    "control_plane_role": "read_only_observer",
+    "mutates_ao_artifacts": false,
+    "ingest_authority": "ao2-runner",
+    "release_acceptance_owner": "factory-v3 evaluator-closer"
+  }
+}
+"""
+
+
+def log_event(invocation_id: str, name: str, payload) -> None:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    path = LOG_DIR / f"{invocation_id}-{name}"
+    if isinstance(payload, (dict, list)):
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        path.write_text(str(payload))
+
+
+def extract_json_object(text: str) -> str:
+    """Pull the first balanced JSON object out of ``text``.
+
+    Tolerates ```json fences, leading/trailing prose, and stray newlines.
+    """
+
+    stripped = text.strip()
+    # Strip ```json … ``` fences if present.
+    if stripped.startswith("```"):
+        stripped = stripped.split("\n", 1)[1] if "\n" in stripped else stripped
+        if stripped.endswith("```"):
+            stripped = stripped[: -len("```")]
+        stripped = stripped.strip()
+        # Drop a leading language tag like "json".
+        if stripped.startswith("json"):
+            stripped = stripped[len("json"):].lstrip()
+
+    # Find the first '{' and a matching closing '}'.
+    start = stripped.find("{")
+    if start == -1:
+        raise ValueError("no '{' in claude response")
+    depth = 0
+    in_string = False
+    escape = False
+    for i in range(start, len(stripped)):
+        ch = stripped[i]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return stripped[start : i + 1]
+    raise ValueError("unbalanced braces in claude response")
+
+
+def main() -> int:
+    invocation_id = f"{int(time.time())}-{uuid.uuid4().hex[:8]}"
+    envelope_text = sys.stdin.read()
+    log_event(invocation_id, "01-envelope.json", envelope_text)
+
+    try:
+        envelope = json.loads(envelope_text)
+    except json.JSONDecodeError as exc:
+        sys.stderr.write(f"shim: stdin is not JSON: {exc}\n")
+        return 2
+
+    prompt_text = envelope.get("prompt", "")
+    context = envelope.get("context") or {}
+    surface_map = context.get("surface_map") or {}
+    prior_errors = context.get("prior_errors") or []
+    expected = envelope.get("expected_output") or {}
+
+    # User message: prompt + raw envelope context (surface_map +
+    # prior_errors + schema/max_steps) so the model has everything it
+    # needs to obey §8.1.
+    user_message_parts = [
+        f"PROMPT:\n{prompt_text}",
+        "",
+        f"SURFACE_MAP (only paths allowed in plan.steps[].paths):",
+        json.dumps(surface_map, indent=2, sort_keys=True),
+        "",
+        f"EXPECTED_OUTPUT.schema = {expected.get('schema', 'ao2.sdd-plan-candidate.v1')}",
+        f"EXPECTED_OUTPUT.max_steps = {expected.get('max_steps', 25)}",
+    ]
+    if prior_errors:
+        user_message_parts.extend(
+            [
+                "",
+                "PRIOR_ERRORS (your previous attempt was rejected — fix every one):",
+                json.dumps(prior_errors, indent=2),
+            ]
+        )
+    user_message_parts.extend(
+        [
+            "",
+            "Emit ONLY the candidate JSON object. No prose, no fences.",
+        ]
+    )
+    user_message = "\n".join(user_message_parts)
+
+    log_event(invocation_id, "02-user-message.txt", user_message)
+
+    if not Path(REAL_CLAUDE).exists():
+        # Fall back to searching PATH minus our shim directory.
+        path_entries = [
+            p for p in os.environ.get("PATH", "").split(":") if p and "sdd-planner-claude-shim" not in p
+        ]
+        candidate = None
+        for p in path_entries:
+            maybe = Path(p) / "claude"
+            if maybe.exists() and os.access(maybe, os.X_OK):
+                candidate = str(maybe)
+                break
+        if candidate is None:
+            sys.stderr.write(f"shim: real claude binary not found (looked for {REAL_CLAUDE})\n")
+            return 3
+        real = candidate
+    else:
+        real = REAL_CLAUDE
+
+    args = [
+        real,
+        "--print",
+        "--output-format",
+        "json",
+        "--no-session-persistence",
+        "--model",
+        "claude-opus-4-7",
+        "--system-prompt",
+        SYSTEM_PROMPT,
+        user_message,
+    ]
+    log_event(invocation_id, "03-claude-args.json", args)
+
+    # Avoid PATH recursion (our shim is on PATH ahead of the real claude).
+    child_env = dict(os.environ)
+    child_env["PATH"] = ":".join(
+        p for p in child_env.get("PATH", "").split(":") if p and "sdd-planner-claude-shim" not in p
+    )
+
+    proc = subprocess.run(
+        args,
+        capture_output=True,
+        text=True,
+        env=child_env,
+    )
+    log_event(invocation_id, "04-claude-stdout.txt", proc.stdout)
+    log_event(invocation_id, "05-claude-stderr.txt", proc.stderr)
+    log_event(invocation_id, "06-claude-exit.txt", str(proc.returncode))
+
+    if proc.returncode != 0:
+        sys.stderr.write(f"shim: claude exited {proc.returncode}\n")
+        sys.stderr.write(proc.stderr)
+        return 4
+
+    try:
+        wrapper = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        sys.stderr.write(f"shim: claude stdout not JSON: {exc}\n")
+        return 5
+
+    if wrapper.get("is_error"):
+        sys.stderr.write(f"shim: claude reported is_error=true: {wrapper.get('result')}\n")
+        return 6
+
+    result_text = wrapper.get("result", "")
+    log_event(invocation_id, "07-result-text.txt", result_text)
+
+    try:
+        candidate_text = extract_json_object(result_text)
+    except ValueError as exc:
+        sys.stderr.write(f"shim: cannot extract JSON object from claude result: {exc}\n")
+        sys.stderr.write(f"shim: raw result follows ----\n{result_text}\n----\n")
+        return 7
+
+    # Validate it parses as JSON before printing — the orchestrator will
+    # also parse it, but failing here gives us a more local error.
+    try:
+        candidate = json.loads(candidate_text)
+    except json.JSONDecodeError as exc:
+        sys.stderr.write(f"shim: extracted text is not JSON: {exc}\n")
+        sys.stderr.write(candidate_text + "\n")
+        return 8
+
+    log_event(invocation_id, "08-candidate.json", candidate)
+
+    sys.stdout.write(candidate_text)
+    sys.stdout.write("\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

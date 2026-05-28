@@ -35,6 +35,13 @@ __pycache__/
 /docs/status/hermes-nightly-scheduler/logs/
 /docs/status/hermes-ao2-watchdog/
 
+# Operator-local watchdog log rotations. Commit structured watchdog status and
+# evidence artifacts, not local stdout/stderr rotations.
+docs/status/hermes-governed-backend-control-plane/**/watchdog-loop*.log
+docs/status/hermes-governed-backend-control-plane/**/watchdog-loop*.out
+docs/status/hermes-governed-backend-control-plane/**/watchdog-loop*.out.*
+docs/status/hermes-governed-backend-control-plane/**/watchdog-launchd-*.log
+
 # Private knowledge source lives outside this repo.
 llm-wiki/
 
@@ -51,3 +58,20 @@ llm-wiki/
 # ignored here. Commit sanitized summaries only.
 /docs/status/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*
 /docs/status/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*/
+.gstack/
+
+# Hermes-AO2 watchdog operational runtime: launchd plist, tick/loop shell
+# wrappers, stdout/err logs, and the runtime directory the watchdog writes
+# to on every cycle (panel snapshots, nightly evidence exports, signed
+# obligation gates, panel history, .sig sidecars). Live operational state
+# only — not part of the project's tracked source.
+/docs/status/hermes-governed-backend-control-plane/com.ao-operator.hermes-ao2-watchdog.plist
+/docs/status/hermes-governed-backend-control-plane/watchdog-launchd-tick.sh
+/docs/status/hermes-governed-backend-control-plane/watchdog-launchd.err.log
+/docs/status/hermes-governed-backend-control-plane/watchdog-launchd.out.log
+/docs/status/hermes-governed-backend-control-plane/watchdog-loop.sh
+/docs/status/hermes-governed-backend-control-plane/watchdog-runtime/
+
+# Hermes nightly AO2 evidence dump. Per-run signed artifacts are produced
+# fresh each nightly cycle; commit sanitized status summaries elsewhere.
+/docs/status/hermes-nightly-ao2/

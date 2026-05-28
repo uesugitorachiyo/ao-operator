@@ -2,8 +2,17 @@
 
 **English** | [日本語](./docs/ja/README.md) | [简体中文](./docs/zh-Hans/README.md) | [繁體中文](./docs/zh-Hant/README.md) | [한국어](./docs/ko/README.md) | [Español](./docs/es/README.md) | [Русский](./docs/ru/README.md) | [Français](./docs/fr/README.md) | [Deutsch](./docs/de/README.md) | [Português](./docs/pt/README.md)
 
-> AO stands for **AI Orchestration Operation**. Product name:
-> **AO Operator**. GitHub repo slug: `ao-operator`.
+> **Midnight. The backlog is growing, and the release is tomorrow. You close your laptop. While you sleep, AO Operator turns your local developer machines into a secure, role-disciplined software factory.**
+>
+> **No loose prompts. No context bloat. Every task brief is bound to a strict, verified obligation ledger, executed inside isolated local sandboxes. Wake up to complete, peer-reviewed, and cryptographically verified pull requests.**
+>
+> **Safe. Accountable. Done. AO Operator. The local multi-agent software factory. Run it tonight.**
+
+## Watch The Promo
+
+[![Watch the AO Operator promo video](images/ao-operator-midnight-launch.png)](images/ao-operator-promo.mp4)
+
+**Video:** [Watch or download the 40-second AO Operator promo](images/ao-operator-promo.mp4)
 
 ![AO Operator autonomous agent CLI](images/ao-operator-agent-team.svg)
 

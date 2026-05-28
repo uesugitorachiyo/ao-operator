@@ -10,3 +10,7 @@ This folder contains handwritten SVG diagrams for AO Operator.
 - `ao-operator-plugin-adapter-stack.svg` - OpenClaw, Hermes, provider, MCP, and A2A boundary diagram.
 - `ao-operator-run-lifecycle.svg` - default AO lifecycle.
 - `ao-operator-artifact-flow.svg` - scoped artifact handoffs.
+- `ao-operator-promo.mp4` - Gemini-assisted promotional video linked from the README.
+- `ao-operator-midnight-launch.png` - README poster frame for the promo video.
+- `ao-operator-crypto-seal.png` - promo video frame for signed evidence.
+- `ao-operator-green-pr.png` - promo video frame for accepted PR output.

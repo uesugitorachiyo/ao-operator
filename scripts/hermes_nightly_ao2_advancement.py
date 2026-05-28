@@ -5798,6 +5798,22 @@ def classify_gap(line: str, path: Path) -> tuple[str, str, str]:
             "low",
             "Iterator or slice navigation uses skip; no skipped test coverage is implied.",
         )
+    if any(
+        marker in lower
+        for marker in (
+            "--dangerously-skip-permissions",
+            '"status": "skipped"',
+            "'status': 'skipped'",
+            "status=skipped",
+            "should_skip_repo_entry",
+            "skip_serializing_if",
+        )
+    ):
+        return (
+            "accepted-skip-reference",
+            "low",
+            "Skip-shaped literal or helper metadata; no skipped verification is implied.",
+        )
     if "skip" in lower and any(marker in normalized for marker in ("/test", "tests/", "_test", ".rs")):
         return (
             "test-skip",
@@ -5822,6 +5838,7 @@ def mine_ranked_gaps(args: argparse.Namespace, limit: int = 200) -> dict[str, An
         "ao-operator": args.factory_root,
     }
     items: list[dict[str, Any]] = []
+    accepted_items: list[dict[str, Any]] = []
     for root in roots.values():
         if not root.exists():
             continue
@@ -5836,24 +5853,31 @@ def mine_ranked_gaps(args: argparse.Namespace, limit: int = 200) -> dict[str, An
                 if not any(pattern.lower() in line.lower() for pattern in GAP_PATTERNS):
                     continue
                 category, severity, recommendation = classify_gap(line, path)
-                items.append(
-                    {
-                        "repo": repo_name(path, roots),
-                        "path": str(path),
-                        "line": line_number,
-                        "category": category,
-                        "severity": severity,
-                        "match": redact_nightly_log_output(line.strip())[:240],
-                        "recommendation": recommendation,
-                    }
-                )
+                item = {
+                    "repo": repo_name(path, roots),
+                    "path": str(path),
+                    "line": line_number,
+                    "category": category,
+                    "severity": severity,
+                    "match": redact_nightly_log_output(line.strip())[:240],
+                    "recommendation": recommendation,
+                }
+                if category == "accepted-skip-reference":
+                    accepted_items.append(item)
+                else:
+                    items.append(item)
     items.sort(key=lambda item: (severity_rank(item["severity"]), item["repo"], item["path"], item["line"]))
+    accepted_items.sort(
+        key=lambda item: (severity_rank(item["severity"]), item["repo"], item["path"], item["line"])
+    )
     return {
         "schema": GAP_BACKLOG_SCHEMA,
         "generated_at_ms": int(time.time() * 1000),
         "patterns": list(GAP_PATTERNS),
         "item_count": len(items[:limit]),
         "items": items[:limit],
+        "accepted_item_count": len(accepted_items[:limit]),
+        "accepted_items": accepted_items[:limit],
     }
 
 
