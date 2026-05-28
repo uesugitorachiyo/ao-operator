@@ -10,9 +10,9 @@
 
 ## Watch The Promo
 
-[![Watch the AO Operator promo video](images/ao-operator-midnight-launch.png)](images/ao-operator-promo.mp4)
+[![Watch the AO Operator promo video on YouTube](https://img.youtube.com/vi/A4qoTZd1gdc/maxresdefault.jpg)](https://youtu.be/A4qoTZd1gdc?si=IR3T0uyA2cVRg-TU)
 
-**Video:** [Watch or download the 40-second AO Operator promo](images/ao-operator-promo.mp4)
+**Video:** [Watch the 40-second AO Operator promo on YouTube](https://youtu.be/A4qoTZd1gdc?si=IR3T0uyA2cVRg-TU)
 
 ![AO Operator autonomous agent CLI](images/ao-operator-agent-team.svg)
 
