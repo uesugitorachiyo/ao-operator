@@ -1,0 +1,20 @@
+{
+  "name": "ao-operator",
+  "version": "0.1.0",
+  "description": "AO Operator factory for Claude Code and Codex: bounded role subagents, Shape-aware intake, provider-routed orchestration, and evidence-first closure.",
+  "author": {
+    "name": "Uesugi",
+    "url": "https://github.com/uesugitorachiyo/ao-operator"
+  },
+  "homepage": "https://github.com/uesugitorachiyo/ao-operator",
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "factory",
+    "agents",
+    "spec-driven",
+    "orchestration",
+    "codex",
+    "evidence",
+    "release-gates"
+  ]
+}

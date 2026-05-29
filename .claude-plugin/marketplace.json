@@ -1,0 +1,27 @@
+{
+  "name": "ao-operator",
+  "owner": {
+    "name": "Uesugi",
+    "url": "https://github.com/uesugitorachiyo/ao-operator"
+  },
+  "metadata": {
+    "description": "AO Operator factory — role contracts, RunSpecs, provider routing, evidence packs, and release gates as a Claude Code plugin.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "ao-operator",
+      "source": "./plugin",
+      "description": "Spec-first autonomous factory: intake → plan → harden → implement → review → integrate → close, with bounded role subagents and provider-aware orchestration.",
+      "category": "workflow",
+      "keywords": [
+        "factory",
+        "agents",
+        "spec-driven",
+        "orchestration",
+        "codex",
+        "evidence"
+      ]
+    }
+  ]
+}

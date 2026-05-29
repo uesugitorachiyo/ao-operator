@@ -106,6 +106,14 @@ For the shortest complete trial, use
 It starts in Codex CLI or Claude Code and shows the generated role graph,
 RunSpec, status directory, and next evidence-producing step.
 
+Want it as a permanent plugin in your CLI instead of a one-off prompt? Install
+the factory commands, role subagents, and skills into Claude Code or Codex —
+see [**Install As A Plugin**](#install-as-a-plugin):
+
+```bash
+python3 scripts/install_plugin.py --confirm-global-install
+```
+
 ![AO Operator app SDD intake](images/ao-operator-app-sdd-intake.svg)
 ![AO Operator app SDD roles](images/ao-operator-app-sdd-roles.svg)
 ![AO Operator app SDD evidence](images/ao-operator-app-sdd-evidence.svg)
@@ -473,6 +481,52 @@ python3 scripts/runspec_export.py \
 python3 scripts/runspec_import.py /tmp/ao-operator-demo/bug-fix.factory/runspec.yaml --json
 ```
 
+## Install As A Plugin
+
+AO Operator ships as a plugin for **Claude Code** and **Codex**. The plugin
+bundles the factory commands (`/ao-run`, `/ao-render`, `/ao-providers`,
+`/ao-profiles`, `/ao-intake`), the eight bounded role subagents (`ao-intake` →
+`ao-planner` → `ao-plan-hardener` → `ao-factory-manager` → `ao-implementer` →
+`ao-slice-reviewer` → `ao-integrator` → `ao-evaluator-closer`), and the vendored
+skills. The package lives in [`plugin/`](plugin/); see
+[`plugin/README.md`](plugin/README.md) for the full component map.
+
+Install both hosts at once (runs the Codex file install and prints the Claude
+Code steps):
+
+```bash
+python3 scripts/install_plugin.py --confirm-global-install
+```
+
+### Claude Code
+
+Claude Code loads the plugin through its marketplace. Run these inside Claude
+Code (replace the path with your checkout):
+
+```text
+/plugin marketplace add /path/to/ao-operator
+/plugin install ao-operator@ao-operator
+```
+
+The repo-root `.claude-plugin/marketplace.json` registers the `plugin/` package.
+After install, the `/ao-*` commands, the `ao-*` role subagents, and the skills
+are all available in the session.
+
+### Codex
+
+Codex reads custom prompts and skills directly from `~/.codex/`, so the install
+is a file drop:
+
+```bash
+python3 scripts/install_plugin.py --codex --confirm-global-install
+```
+
+This copies each command body (frontmatter stripped) to
+`~/.codex/prompts/ao-*.md` and symlinks the skills into `~/.codex/skills/`.
+Invoke the prompts as `/ao-run`, `/ao-render`, `/ao-providers`, `/ao-profiles`,
+and `/ao-intake` inside Codex. The install is idempotent — re-run it after
+pulling updates.
+
 ## Starter Profiles
 
 Starter profiles live under `profiles/starters/` and are regular
@@ -665,6 +719,7 @@ products.
 - `ao/runspecs/README.md` - AO RunSpec usage
 - `agents/README.md` - role catalog
 - `skills/` and `skills.toml` - vendored factory skills
+- `plugin/` and `plugin/README.md` - Claude Code / Codex plugin package
 - `docs/launch/hn-draft.md` - public launch copy for the one-product story
 
 ## Non-Goals For The Public Launch
