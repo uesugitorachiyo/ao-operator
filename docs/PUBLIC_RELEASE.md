@@ -14,7 +14,7 @@ has already passed and the diff is intentionally scoped.
 - Provenance artifact root: `run-artifacts/`.
 - Public export must not contain local machine paths, provider API keys, lab
   network targets outside approved scanner fixtures, raw transcripts, or
-  unreleased Hermes/AO2 bridge internals.
+  unreleased integration bridge internals.
 
 ## Verify Before Publishing
 
