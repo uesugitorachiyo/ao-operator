@@ -10,7 +10,7 @@ __pycache__/
 /docs/specs/factoryv3-smoke-*-spec.md
 /docs/plans/factoryv3-smoke-*-plan.md
 /docs/evaluations/factoryv3-smoke-*-evaluation.md
-/docs/status/factoryv3-smoke-*/
+/run-artifacts/factoryv3-smoke-*/
 /docs/evidence/factoryv3-smoke-*/
 /docs/compliance/factoryv3-smoke-*/
 
@@ -31,16 +31,16 @@ __pycache__/
 
 # Hermes launchd runtime output. Scheduler templates are committed; live run
 # payloads and logs are local operational state.
-/docs/status/hermes-nightly-control-plane/latest-run/
-/docs/status/hermes-nightly-scheduler/logs/
-/docs/status/hermes-ao2-watchdog/
+/run-artifacts/hermes-nightly-control-plane/latest-run/
+/run-artifacts/hermes-nightly-scheduler/logs/
+/run-artifacts/hermes-ao2-watchdog/
 
 # Operator-local watchdog log rotations. Commit structured watchdog status and
 # evidence artifacts, not local stdout/stderr rotations.
-docs/status/hermes-governed-backend-control-plane/**/watchdog-loop*.log
-docs/status/hermes-governed-backend-control-plane/**/watchdog-loop*.out
-docs/status/hermes-governed-backend-control-plane/**/watchdog-loop*.out.*
-docs/status/hermes-governed-backend-control-plane/**/watchdog-launchd-*.log
+run-artifacts/hermes-governed-backend-control-plane/**/watchdog-loop*.log
+run-artifacts/hermes-governed-backend-control-plane/**/watchdog-loop*.out
+run-artifacts/hermes-governed-backend-control-plane/**/watchdog-loop*.out.*
+run-artifacts/hermes-governed-backend-control-plane/**/watchdog-launchd-*.log
 
 # Private knowledge source lives outside this repo.
 llm-wiki/
@@ -49,15 +49,15 @@ llm-wiki/
 # summaries only; raw AO homes, full events, generated patches, and partial role
 # docs can contain provider transcripts or diff-hygiene failures.
 /docs/remote-transfer-v2/
-/docs/status/remote-transfer-v2-stress/failure-snapshots/ao-home-*/
-/docs/status/remote-transfer-v2-stress/patches/
-/docs/status/remote-transfer-v2-stress/remote-transfer-v2-stress-ao-events.md
+/run-artifacts/remote-transfer-v2-stress/failure-snapshots/ao-home-*/
+/run-artifacts/remote-transfer-v2-stress/patches/
+/run-artifacts/remote-transfer-v2-stress/remote-transfer-v2-stress-ao-events.md
 
 # Remote Transfer v2 bounded-live failed-run raw diagnostics. Accepted live
 # evidence remains trackable under the slug; only raw failure AO homes are
 # ignored here. Commit sanitized summaries only.
-/docs/status/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*
-/docs/status/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*/
+/run-artifacts/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*
+/run-artifacts/remote-transfer-v2-stress-live/failure-snapshots/ao-home-*/
 .gstack/
 
 # Hermes-AO2 watchdog operational runtime: launchd plist, tick/loop shell
@@ -65,13 +65,13 @@ llm-wiki/
 # to on every cycle (panel snapshots, nightly evidence exports, signed
 # obligation gates, panel history, .sig sidecars). Live operational state
 # only — not part of the project's tracked source.
-/docs/status/hermes-governed-backend-control-plane/com.ao-operator.hermes-ao2-watchdog.plist
-/docs/status/hermes-governed-backend-control-plane/watchdog-launchd-tick.sh
-/docs/status/hermes-governed-backend-control-plane/watchdog-launchd.err.log
-/docs/status/hermes-governed-backend-control-plane/watchdog-launchd.out.log
-/docs/status/hermes-governed-backend-control-plane/watchdog-loop.sh
-/docs/status/hermes-governed-backend-control-plane/watchdog-runtime/
+/run-artifacts/hermes-governed-backend-control-plane/com.ao-operator.hermes-ao2-watchdog.plist
+/run-artifacts/hermes-governed-backend-control-plane/watchdog-launchd-tick.sh
+/run-artifacts/hermes-governed-backend-control-plane/watchdog-launchd.err.log
+/run-artifacts/hermes-governed-backend-control-plane/watchdog-launchd.out.log
+/run-artifacts/hermes-governed-backend-control-plane/watchdog-loop.sh
+/run-artifacts/hermes-governed-backend-control-plane/watchdog-runtime/
 
 # Hermes nightly AO2 evidence dump. Per-run signed artifacts are produced
 # fresh each nightly cycle; commit sanitized status summaries elsewhere.
-/docs/status/hermes-nightly-ao2/
+/run-artifacts/hermes-nightly-ao2/
