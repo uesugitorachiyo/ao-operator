@@ -1,6 +1,6 @@
 ---
 name: ao-intake
-description: Captures and classifies raw user intent into a AO Operator RunSpec input. Use first, before planning, to turn ambient intent into a scoped intake brief.
+description: Captures and classifies raw user intent into an AO Operator RunSpec input. Use first, before planning, to turn ambient intent into a scoped intake brief.
 tools: Read, Grep, Glob
 ---
 

@@ -22,22 +22,6 @@ AO Operator uses ai-teams discipline with AO Runtime orchestration.
 - Every role returns evidence, concerns, and blocker state.
 - Nothing is complete until evaluator-closer accepts the evidence.
 
-## Hermes Integration Boundary
-
-The intended Hermes architecture is permanent:
-
-- Hermes is the front end, queue, cron trigger, and memory bookkeeping surface.
-- AO Operator / AO Operator owns contracts, profiles, role discipline, evaluator
-  closure, and governed workflow execution.
-- AO2 owns trusted execution, memory, replay, and signed evidence boundaries.
-- AO2 Control Plane is a read-only observer for signed evidence and memory
-  exports; it must not sit in the trust path.
-
-Hermes scheduled jobs must submit or invoke governed Factory/AO2 workflows
-instead of using Hermes as a direct, arbitrary repo-mutating backend. If a task
-cannot be routed through the governed Factory/AO2 path while preserving signed
-evidence and evaluator closure, stop and report the boundary issue.
-
 ## Provider Rules
 
 Each role resolves its provider from `.env`.
